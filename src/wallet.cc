@@ -114,7 +114,7 @@ void Wallet::Init(Isolate* isolate) {
         {"on", On},
         {"store", Store},
         {"path", Path},
-        {"nettype", NetType},
+        {"network", NetType},
         {"secretViewKey", SecretViewKey},
         {"publicViewKey", PublicViewKey},
         {"secretSpendKey", SecretSpendKey},
