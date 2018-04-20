@@ -130,9 +130,6 @@ void Wallet::Init(Isolate* isolate) {
         {"blockchainHeight", BlockChainHeight},
         {"daemonBlockchainHeight", DaemonBlockChainHeight},
         {"synchronized", Synchronized},
-        {"getPaymentId", GenPaymentId},
-        {"paymentIdValid", PaymentIdValid},
-        {"addressValid", AddressValid},
         {"defaultMixin", DefaultMixin},
         {"setDefaultMixin", SetDefaultMixin},
         {"startRefresh", StartRefresh},
@@ -391,9 +388,7 @@ void Wallet::Synchronized(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
 void Wallet::GenPaymentId(const v8::FunctionCallbackInfo<v8::Value>& args) {
     auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->genPaymentId().c_str()));
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, Monero::Wallet::genPaymentId().c_str()));
 }
 
 void Wallet::PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -403,9 +398,7 @@ void Wallet::PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-
-    args.GetReturnValue().Set(Boolean::New(isolate, obj->wallet_->paymentIdValid(toStdString(isolate, args[0]->ToString(isolate)))));
+    args.GetReturnValue().Set(Boolean::New(isolate, Monero::Wallet::paymentIdValid(toStdString(isolate, args[0]->ToString(isolate)))));
 }
 
 void Wallet::AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -421,8 +414,7 @@ void Wallet::AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    bool valid = obj->wallet_->addressValid(toStdString(isolate, args[0]->ToString()), nettype);
+    bool valid = Monero::Wallet::addressValid(toStdString(isolate, args[0]->ToString()), nettype);
     args.GetReturnValue().Set(Boolean::New(isolate, valid));
 }
 
