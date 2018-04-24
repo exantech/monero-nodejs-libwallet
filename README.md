@@ -3,7 +3,7 @@ Wrapper for monero libwallet. All created wallet files are compatible with `mone
 Check `example.js` for usage examples of the library. 
 
 # TODO
-* prebuilt binaries for desktop platforms
+* prebuilt binaries for desktop platforms.
 
 # API
 ## Module Functions
@@ -180,13 +180,14 @@ Returns current network type (either `mainnet`, `stagenet` or `testnet`):
 console.log("network : " + wallet.network());
 ```
 
-### secretViewKey, publicViewKey, secretSpendKey, publicSpendKey
+### secretViewKey, publicViewKey, secretSpendKey, publicSpendKey, publicMultisigSignerKey
 Returns corresponding hex-encoded wallet key:
 ```js
 console.log("secret view key : " + wallet.secretViewKey());
 console.log("public view key : " + wallet.publicViewKey());
 console.log("secret spend key : " + wallet.secretSpendKey());
 console.log("public spend key : " + wallet.publicSpendKey());
+console.log("public spend key : " + wallet.publicMultisigSignerKey());
 ```
 
 ### setPassword
@@ -247,10 +248,85 @@ console.log('wallet synchronized: ' + wallet.synchronized());
 ```
 
 ### pauseRefresh
-Stops synchronization
+Stops synchronization.
 
 ### startRefresh
-Resumes synchronization
+Resumes synchronization.
+
+### multisigState
+Returns an object representing multisig wallet state:
+```js
+var state = wallet.multisigState();
+console.log('is multisig: ' + state.isMultisig);
+console.log('is multisig ready: ' + state.isReady); //indicates multisig wallet creation process is finished
+console.log('multisig threshold: ' + state.threshold); //number of required signatures
+console.log('multisig total: ' + state.total); //number of participants
+```
+
+### getMultisigInfo
+Returns serialized to string multisig info data necessary for multisig wallet creation (see example below).
+
+### makeMultisig
+Accepts multisig infos from all participants and the threshold to set wallet into multisig state (see example below). 
+In case of N / N wallets it's the last step in wallet creation.
+In case of N - 1 / N wallets returns extra multisig info which must be passed to another participants.
+
+### finalizeMultisig
+Accepts extra multisig info (result of `makeMultisig` invocation) from all participants and finalizes N - 1 / N multisig wallet creation.
+
+3 / 3 multisig wallet creation example: 
+```js
+var msigInfo1 = wallet1.getMultisigInfo();
+var msigInfo2 = wallet2.getMultisigInfo();
+var msigInfo3 = wallet3.getMultisigInfo();
+
+wallet1.makeMultisig([msigInfo2, msigInfo3], 3);
+wallet2.makeMultisig([msigInfo1, msigInfo3], 3);
+wallet3.makeMultisig([msigInfo1, msigInfo2], 3);
+
+console.log('multisig wallet created');
+console.log('wallet1 address: ' + wallet1.address());
+console.log('wallet2 address: ' + wallet2.address());
+console.log('wallet3 address: ' + wallet3.address());
+```
+
+2 / 3 multisig wallet creation example: 
+```js
+var msigInfo1 = wallet1.getMultisigInfo();
+var msigInfo2 = wallet2.getMultisigInfo();
+var msigInfo3 = wallet3.getMultisigInfo();
+
+var emsigInfo1 = wallet1.makeMultisig([msigInfo2, msigInfo3], 2);
+var emsigInfo2 = wallet2.makeMultisig([msigInfo1, msigInfo3], 2);
+var emsigInfo3 = wallet3.makeMultisig([msigInfo1, msigInfo2], 2);
+
+wallet1.finalizeMultisig([emsigInfo2, emsigInfo3]);
+wallet2.finalizeMultisig([emsigInfo1, emsigInfo3]);
+wallet3.finalizeMultisig([emsigInfo1, emsigInfo2]);
+
+console.log('multisig wallet created');
+console.log('wallet1 address: ' + wallet1.address());
+console.log('wallet2 address: ' + wallet2.address());
+console.log('wallet3 address: ' + wallet3.address());
+```
+
+### exportMultisigImages
+Returns string of exported partial key images (see example below).
+
+### importMultisigImages
+Imports exported partial key images from other participants: 
+```js
+var ki1 = msigWallet1.exportMultisigImages();
+var ki2 = msigWallet2.exportMultisigImages();
+var ki3 = msigWallet3.exportMultisigImages();
+
+msigWallet1.importMultisigImages([ki2, ki3]);
+msigWallet2.importMultisigImages([ki1, ki3]);
+msigWallet3.importMultisigImages([ki1, ki2]);
+```
+
+### restoreMultisigTransaction
+Deserializes multisig transaction from other participant. Returns promise object.
 
 ## Pending Transaction's Functions
 ### commit
@@ -293,3 +369,31 @@ if (tx.transactionsCount() > 1) {
 }
 ```
 
+### multisigSignData
+Returns serialized multisig transaction which has to be passed to another participants for signature (see example below).
+
+### signMultisigTransaction
+Signs multisig transaction:
+```js
+wallet1.createTransaction({
+	'address': '44zrUGhyRHYbHYrfiGAtLdJMHfe5DtoFTBeVPCE6MGKzZA2bJ4tCJFuhYk3Wjp3YxEWoQU8So5xUiiArgnkBHZgX8Fyhv6e',
+	'amount': '2000000000',
+}).then((tx) => {
+	var signData = tx.multisigSignData();
+
+	wallet2.restoreMultisigTransaction(signData).then((tx) => {
+		console.log('multisig transaction restored successfully. Signing...');
+		tx.signMultisigTransaction();
+	}).catch((e) => {
+		console.log("couldn't restore multisig transaction: " + e);
+	});
+}).catch((e) => {
+	console.log("couldn't create transaction: " + e);
+});
+```
+
+### signersKeys
+Returns an array of public signers key of participants who already signed this transaction:
+```js
+console.log('participants already signed this transaction: ' + tx.signersKeys());
+```

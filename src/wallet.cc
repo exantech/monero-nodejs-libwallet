@@ -18,6 +18,21 @@ std::string toStdString(Isolate* isolate, const Local<Value>& val) {
   return std::string(*utf8val, utf8val.length());
 }
 
+bool toVectorString(Isolate* isolate, Local<Value> args, std::vector<std::string>& append) {
+    Local<Array> items = Local<Array>::Cast(args);
+    append.reserve(append.size() + items->Length());
+    for (uint32_t i = 0; i < items->Length(); ++i) {
+        auto msigInfo = items->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
+        if (!msigInfo->IsString()) {
+            return false;
+        }
+
+        append.emplace_back(toStdString(isolate, msigInfo));
+    }
+
+    return true;
+}
+
 std::map<std::string, Monero::NetworkType> nettypes {
     {"mainnet", Monero::MAINNET},
     {"testnet", Monero::TESTNET},
@@ -134,7 +149,15 @@ void Wallet::Init(Isolate* isolate) {
         {"setDefaultMixin", SetDefaultMixin},
         {"startRefresh", StartRefresh},
         {"pauseRefresh", PauseRefresh},
-        {"createTransaction", CreateTransaction}
+        {"createTransaction", CreateTransaction},
+        {"publicMultisigSignerKey", PublicMultisigSignerKey},
+        {"getMultisigInfo", GetMultisigInfo},
+        {"makeMultisig", MakeMultisig},
+        {"finalizeMultisig", FinalizeMultisig},
+        {"exportMultisigImages", ExportMultisigImages},
+        {"importMultisigImages", ImportMultisigImages},
+        {"restoreMultisigTransaction", RestoreMultisigTransaction},
+        {"multisigState", MultisigState}
     };
 
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
@@ -459,6 +482,160 @@ void Wallet::CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) 
     CreateTransactionTask* task = new CreateTransactionTask(isolate, txArgs, obj->wallet_);
     auto promise = task->Enqueue(isolate);
     args.GetReturnValue().Set(promise);
+}
+
+void Wallet::PublicMultisigSignerKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    auto signerKey = obj->wallet_->publicMultisigSignerKey();
+    if (signerKey.empty()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "The wallet is not multisig")));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signerKey.c_str()));
+}
+
+void Wallet::GetMultisigInfo(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    auto msigInfo = obj->wallet_->getMultisigInfo();
+
+    int status;
+    std::string errorString;
+    obj->wallet_->statusWithErrorString(status, errorString);
+    if (status != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        return;
+    }
+
+    return args.GetReturnValue().Set(String::NewFromUtf8(isolate, msigInfo.c_str()));
+}
+
+void Wallet::MakeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 2 || !args[0]->IsArray() || !args[1]->IsInt32()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings and integer arguments")));
+        return;
+    }
+
+    std::vector<std::string> infos;
+    if (!toVectorString(isolate, args[0], infos)) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings and integer arguments")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    auto threshold = Local<Uint32>::Cast(args[1]);
+    auto extraInfo = obj->wallet_->makeMultisig(infos, threshold->Value());
+
+    int status;
+    std::string errorString;
+    obj->wallet_->statusWithErrorString(status, errorString);
+    if (status != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, extraInfo.c_str()));
+}
+
+void Wallet::FinalizeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 1 || !args[0]->IsArray()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings argument")));
+        return;
+    }
+
+    std::vector<std::string> extraInfos;
+    if (!toVectorString(isolate, args[0], extraInfos)) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings arguments")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    if (!obj->wallet_->finalizeMultisig(extraInfos)) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        return;
+    }
+}
+
+void Wallet::ExportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    std::string images;
+    if (!obj->wallet_->exportMultisigImages(images)) {
+        auto errorString = obj->wallet_->errorString();
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, images.c_str()));
+}
+
+void Wallet::ImportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 1 || !args[0]->IsArray()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings argument")));
+        return;
+    }
+
+    std::vector<std::string> images;
+    if (!toVectorString(isolate, args[0], images)) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings arguments")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    uint32_t imported = obj->wallet_->importMultisigImages(images);
+
+    int status;
+    std::string errorString;
+    obj->wallet_->statusWithErrorString(status, errorString);
+    if (status != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(imported);
+}
+
+void Wallet::RestoreMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    RestoreMultisigTransactionTask* task = new RestoreMultisigTransactionTask(isolate, toStdString(isolate, args[0]), obj->wallet_);
+    auto promise = task->Enqueue(isolate);
+    args.GetReturnValue().Set(promise);
+}
+
+void Wallet::MultisigState(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    auto state = obj->wallet_->multisig();
+    Local<Object> res = Object::New(isolate);
+    res->Set(isolate->GetCurrentContext(),
+             String::NewFromUtf8(isolate, "isMultisig"),
+             Boolean::New(isolate, state.isMultisig));
+    res->Set(isolate->GetCurrentContext(),
+             String::NewFromUtf8(isolate, "isReady"),
+             Boolean::New(isolate, state.isReady));
+    res->Set(isolate->GetCurrentContext(),
+             String::NewFromUtf8(isolate, "threshold"),
+             Uint32::NewFromUnsigned(isolate, state.threshold));
+    res->Set(isolate->GetCurrentContext(),
+             String::NewFromUtf8(isolate, "total"),
+             Uint32::NewFromUnsigned(isolate, state.total));
+
+    args.GetReturnValue().Set(res);
 }
 
 } //namespace exawallet

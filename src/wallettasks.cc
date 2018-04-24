@@ -83,4 +83,17 @@ Local<Value> CommitTransactionTask::afterWork(Isolate* isolate, std::string& err
     return Undefined(isolate);
 }
 
+std::string RestoreMultisigTransactionTask::doWork() {
+    transaction_ = wallet_->restoreMultisigTransaction(transactionData_);
+    if (wallet_->status() != Monero::Wallet::Status_Ok) {
+        return wallet_->errorString();
+    }
+
+    return {};
+}
+
+Local<Value> RestoreMultisigTransactionTask::afterWork(Isolate* isolate, std::string& error) {
+    return PendingTransaction::NewInstance(isolate, transaction_);
+}
+
 }

@@ -29,7 +29,10 @@ void PendingTransaction::Init(Isolate* isolate) {
         {"dust", Dust},
         {"fee", Fee},
         {"transactionsIds", TransactionsIds},
-        {"transactionsCount", TransactionsCount}
+        {"transactionsCount", TransactionsCount},
+        {"multisigSignData", MultisigSignData},
+        {"signersKeys", SignersKeys},
+        {"signMultisigTransaction", SignMultisigTransaction},
     };
 
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
@@ -127,6 +130,47 @@ void PendingTransaction::TransactionsCount(const v8::FunctionCallbackInfo<v8::Va
     auto isolate = args.GetIsolate();
     PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
     args.GetReturnValue().Set(Uint32::NewFromUnsigned(isolate, obj->transaction->txCount()));
+}
+
+void PendingTransaction::MultisigSignData(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+
+    auto signData = obj->transaction->multisigSignData();
+    if (obj->transaction->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->transaction->errorString().c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signData.c_str()));
+}
+
+void PendingTransaction::SignersKeys(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+
+    auto keys = obj->transaction->signersKeys();
+    auto res = Array::New(isolate, keys.size());
+    for (size_t i = 0; i < keys.size(); ++i) {
+        auto key = keys[i];
+        if (res->Set(isolate->GetCurrentContext(), i, String::NewFromUtf8(isolate, key.c_str())).IsNothing()) {
+            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Error occured during insertion value into the array")));
+            return;
+        }
+    }
+
+    args.GetReturnValue().Set(res);
+}
+
+void PendingTransaction::SignMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+
+    obj->transaction->signMultisigTx();
+    if (obj->transaction->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->transaction->errorString().c_str())));
+        return;
+    }
 }
 
 }

@@ -63,4 +63,17 @@ private:
     Monero::PendingTransaction* transaction_;
 };
 
+class RestoreMultisigTransactionTask: public DeferredTask {
+public:
+    RestoreMultisigTransactionTask(v8::Isolate* isolate, const std::string& transactionData, Monero::Wallet* wallet): DeferredTask(isolate), transactionData_(transactionData), wallet_(wallet) {}
+
+    virtual std::string doWork() override;
+    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+
+private:
+    std::string transactionData_;
+    Monero::PendingTransaction* transaction_ = nullptr;
+    Monero::Wallet* wallet_;
+};
+
 } //namespace exawallet

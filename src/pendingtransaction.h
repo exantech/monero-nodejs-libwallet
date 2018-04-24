@@ -25,6 +25,10 @@ public:
     static void TransactionsIds(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void TransactionsCount(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    static void MultisigSignData(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void SignersKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void SignMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
+
 private:
     static v8::Persistent<v8::Function> constructor;
 

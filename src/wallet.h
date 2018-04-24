@@ -79,6 +79,13 @@ public:
     static void CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static void PublicMultisigSignerKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void GetMultisigInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void MakeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void FinalizeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ExportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void ImportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void RestoreMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void MultisigState(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static v8::Persistent<v8::Function> constructor;
 
