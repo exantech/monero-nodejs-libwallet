@@ -21,6 +21,10 @@ public:
     static void CreateWallet(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void OpenWallet(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    static void GenPaymentId(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args);
+
     // returns either callback or empty maybe.
     v8::MaybeLocal<v8::Function> FindCallback(v8::Isolate* isolate, const std::string& name);
 
@@ -66,10 +70,6 @@ public:
 
     static void Synchronized(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    static void GenPaymentId(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args);
-
     static void DefaultMixin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void SetDefaultMixin(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -77,6 +77,8 @@ public:
     static void PauseRefresh(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static void CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+    static void PublicMultisigSignerKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static v8::Persistent<v8::Function> constructor;
 
