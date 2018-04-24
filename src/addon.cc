@@ -1,6 +1,4 @@
 // addon.cc
-#include <uv.h>
-
 #include "wallet.h"
 #include "pendingtransaction.h"
 
