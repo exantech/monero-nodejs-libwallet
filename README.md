@@ -7,6 +7,13 @@ Check `example.js` for usage examples of the library.
 
 # API
 ## Module Functions
+### setupLog
+Configures log level and output (file or `stdout`). Accepts integer log level (from `0` to `4`) and optional output filename (skip it if you want log to write in `stdout`):
+```js
+const monero = require('./build/Debug/monero');
+monero.setupLog(4, 'wallet.log'); //maximum logs into `wallet.log` file
+```
+
 ### createWallet
 Create new wallet asynchronously:
 ```js
