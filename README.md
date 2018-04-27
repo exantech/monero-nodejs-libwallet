@@ -1,6 +1,6 @@
 # monero-nodejs-libwallet
 Wrapper for monero libwallet. All created wallet files are compatible with `monero-wallet-cli` and `monero-wallet-rpc`. 
-Check `example.js` for usage examples of the library. 
+Check `example/index.js` for usage examples of the library. 
 
 # TODO
 * prebuilt binaries for desktop platforms.

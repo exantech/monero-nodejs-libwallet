@@ -1,0 +1,42 @@
+{
+  "name": "monero-nodejs-libwallet",
+  "version": "0.1.0",
+  "description": "Monero libwallet native addon. Under development at the moment",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "preinstall": "npm install node-pre-gyp && ./build.sh",
+    "install": "node-pre-gyp install --fallback-to-build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exantech/monero-nodejs-libwallet.git"
+  },
+  "keywords": [
+    "Monero",
+    "crypto",
+    "currency",
+    "cryptocurrency",
+    "wallet",
+    "nodejs"
+  ],
+  "author": "exantech",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/exantech/monero-nodejs-libwallet/issues"
+  },
+  "homepage": "https://github.com/exantech/monero-nodejs-libwallet#readme",
+  "dependencies": {
+    "node-pre-gyp": "^0.9.1"
+  },
+  "binary": {
+    "module_name": "monero",
+    "module_path": "./build/{configuration}/{node_abi}-{platform}-{arch}/",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://nodeaddons.s3-us-west-2.amazonaws.com"
+  }
+}

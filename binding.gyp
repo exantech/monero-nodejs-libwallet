@@ -10,11 +10,12 @@
         "src/deferredtask.cc",
         "src/wallettasks.cc",
         "src/pendingtransaction.cc",],
-      "libraries": ["../lib/linux/amd64/libwallet_merged.a", 
-			      "../lib/linux/amd64/libepee.a", 
-			      "../lib/linux/amd64/libeasylogging.a", 
-			      "../lib/linux/amd64/liblmdb.a", 
-			      "../lib/linux/amd64/libunbound.a", 
+      "libraries": [
+            "../lib/libwallet_merged.a", 
+			      "../lib/libepee.a", 
+			      "../lib/libeasylogging.a", 
+			      "../lib/liblmdb.a", 
+			      "../lib/libunbound.a", 
 			      "-lboost_serialization", 
 			      "-lboost_thread", 
 			      "-lboost_system", 
@@ -30,6 +31,17 @@
       "include_dirs": [
            "include",
       ],
+    },
+    {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+        }
+      ]
     }
   ]
 }
