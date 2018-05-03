@@ -5,17 +5,23 @@ function die {
 	exit 1
 }
 
+MULTISIG_BRANCH=release-v0.12-multisig-wallet-assembled
 CWD=`pwd`
-
-git submodule update --init --recursive || die
 
 pushd $CWD
 
-if [ ! -d "monero/build" ]; then
-	mkdir monero/build || die
+if [ ! -d "monero" ]; then
+	git clone -b $MULTISIG_BRANCH https://github.com/exantech/monero || die
 fi
 
-cd monero/build
+cd monero
+git submodule update --init --recursive || die
+
+if [ ! -d "build" ]; then
+	mkdir build || die
+fi
+
+cd build
 
 ARCHIVE_DIR=`pwd`/lib
 
