@@ -26,9 +26,11 @@
   "license": "LGPL-3.0-or-later",
   "gypfile": true,
   "bugs": {
-    "url": "https://github.com/exantech/monero-nodejs-libwallet/issues"
+    "url": "https://github.com/exantech/monero-nodejs-libwallet/issues",
+    "email": "hello@exan.tech"
   },
   "homepage": "https://github.com/exantech/monero-nodejs-libwallet#readme",
+  "engines": {"node": "8 - 9"},
   "dependencies": {
     "node-pre-gyp": "^0.9.1"
   },
