@@ -23,7 +23,7 @@
     "nodejs"
   ],
   "author": "exantech",
-  "license": "ISC",
+  "license": "LGPL-3.0-or-later",
   "gypfile": true,
   "bugs": {
     "url": "https://github.com/exantech/monero-nodejs-libwallet/issues"
