@@ -1,7 +1,30 @@
 {
   "targets": [
     {
+      "target_name": "build_monero",
+      "type": "none",
+      "actions": [
+        {
+          "action_name": "retrieve_from_github",
+          "variables": {
+            "monero-branch": "release-v0.12-multisig-wallet-assembled"
+          },
+          "inputs": "",
+          "outputs": [
+            "../lib/libwallet_merged.a", 
+            "../lib/libepee.a", 
+            "../lib/libeasylogging.a", 
+            "../lib/liblmdb.a", 
+            "../lib/libunbound.a", 
+          ],
+          "action": ["./build.sh"],
+          "message": "Building monero libraries",
+        },
+      ],
+    },
+    {
       "target_name": "monero",
+      "dependencies": ["build_monero"],
       "sources": [
         "src/addon.cc",   
         "src/wallet.cc", 
@@ -29,8 +52,8 @@
             "-lz",
             "-lpcsclite"],
       "include_dirs": [
-           "include",
-      ],
+           "include"
+      ]
     },
     {
       "target_name": "action_after_build",

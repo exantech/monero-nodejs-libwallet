@@ -6,10 +6,6 @@
   "directories": {
     "lib": "lib"
   },
-  "scripts": {
-    "preinstall": "npm install node-pre-gyp && ./build.sh",
-    "install": "node-pre-gyp install --fallback-to-build"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/exantech/monero-nodejs-libwallet.git"
@@ -36,11 +32,17 @@
   "dependencies": {
     "node-pre-gyp": "^0.9.1"
   },
+  "bundledDependencies": ["node-pre-gyp"],
   "binary": {
     "module_name": "monero",
     "module_path": "./build/{configuration}/{node_abi}-{platform}-{arch}/",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz",
     "host": "https://s3-us-west-2.amazonaws.com"
+  },
+  "scripts": {
+    "prepublishOnly": "npm ls",
+    "preinstall": "./build.sh",
+    "install": "node-pre-gyp install --fallback-to-build"
   }
 }

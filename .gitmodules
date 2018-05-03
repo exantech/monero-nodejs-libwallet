@@ -1,4 +1,0 @@
-[submodule "monero"]
-	path = monero
-	url = https://github.com/exantech/monero
-	branch = release-v0.12-multisig-wallet-assembled
