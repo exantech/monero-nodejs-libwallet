@@ -2,7 +2,7 @@
   "conditions": [
     ['OS=="linux"', {
       "variables": {
-        'boost_libraries': [
+        'osdep_libraries': [
           "-lboost_serialization", 
           "-lboost_thread", 
           "-lboost_system", 
@@ -11,12 +11,13 @@
           "-lboost_chrono", 
           "-lboost_program_options", 
           "-lboost_regex",
+          "-lpcsclite"
         ]
       }
     }],
     ['OS=="mac"', {
       "variables": {
-        'boost_libraries': [
+        'osdep_libraries': [
           "-lboost_serialization-mt", 
           "-lboost_thread-mt", 
           "-lboost_system-mt", 
@@ -25,6 +26,7 @@
           "-lboost_chrono-mt", 
           "-lboost_program_options-mt", 
           "-lboost_regex-mt",
+          "-framework PCSC"
         ]
       }
     }]
@@ -66,11 +68,10 @@
 			      "../lib/libeasylogging.a", 
 			      "../lib/liblmdb.a", 
 			      "../lib/libunbound.a", 
-            "<@(boost_libraries)",
+            "<@(osdep_libraries)",
 			      "-lssl",
             "-lcrypto",
-            "-lz",
-            "-lpcsclite"],
+            "-lz"],
       "include_dirs": [
            "include"
       ]
