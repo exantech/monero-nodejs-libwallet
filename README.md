@@ -2,22 +2,81 @@
 Wrapper for monero libwallet. All created wallet files are compatible with `monero-wallet-cli` and `monero-wallet-rpc`. 
 Check `example/index.js` for usage examples of the library. 
 
-# TODO
-* prebuilt binaries for desktop platforms.
+# Installation
+To start using the library is pretty straightword. Add the dependency into your `package.json`: 
+```js
+{
+  "name": "mywallet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "monero-nodejs-libwallet": "*"
+  }
+}
+```
+
+Install it:
+```sh
+$ npm install
+```
+`npm` will try to find and download precompiled binaries for your node version, OS and architecture. Then include require statement in your `js`-code and use it:
+```js
+const monero = require('monero-nodejs-libwallet');
+```
+If `npm` couldn't find proper binaries for your platform please refer to [manual build](#manual-build) section.
+
+# Manual Build
+If you want to build the addon manually or there are no prebuilt binaries for your platform in `npm` repository please check the [official monero guide](https://github.com/monero-project/monero#compiling-monero-from-source) on how to satisfy all the dependencies. After that you may compile the addon following these steps:
+
+Checkout the repository:
+```sh
+$ git clone https://github.com/exantech/monero-nodejs-libwallet
+```
+
+Run build:
+```sh
+$ node-pre-gyp configure build
+```
+
+After successfull build set up your project's `package.json`:
+```js
+{
+  "name": "example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "monero-nodejs-libwallet": "file:<path-to-libwallet>"
+  }
+}
+
+```
+
+Install it locally:
+```sh
+$ npm install
+```
+
+And use it in you source code:
+```js
+const monero = require('monero-nodejs-libwallet');
+```
+
 
 # API
 ## Module Functions
 ### setupLog
-Configures log level and output (file or `stdout`). Accepts integer log level (from `0` to `4`) and optional output filename (skip it if you want log to write in `stdout`):
+Configures log level and output (file or `stdout`). Accepts integer log level (from `0` to `4`) and optional output filename (skip it if you want log to write to `stdout`):
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 monero.setupLog(4, 'wallet.log'); //maximum logs into `wallet.log` file
 ```
 
 ### createWallet
 Create new wallet asynchronously:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 monero.createWallet({
 	'path': 'test-wallet',
 	'password': '123', 
@@ -41,7 +100,7 @@ Returns promise object. Throws in case of arguments error.
 ### openWallet
 Opens existing wallet asynchronously:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 monero.openWallet({
 	'path': 'test-wallet',
 	'password': '123', 
@@ -66,7 +125,7 @@ Returns promise object. Throws in case of arguments error.
 ### walletExists
 Checks if wallet exists:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 if (monero.walletExists('test-wallet')) {
     console.log('Wallet already exists');
 } else {
@@ -79,14 +138,14 @@ Returns boolean.
 ### genPaymentId
 Generates new payment id:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 console.log('New payment id: ' + monero.genPaymentId());
 ```
 
 ### paymentIdValid
 Checks if given payment id is valid:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 if (monero.paymentIdValid('180b67533011df75b74333e62599c160f5484bf8bb98779598520dfb90633198')) {
     console.log('Payment id is valid');
 } else {
@@ -97,7 +156,7 @@ if (monero.paymentIdValid('180b67533011df75b74333e62599c160f5484bf8bb98779598520
 ### addressValid
 Checks if given monero address valid in certain network type:
 ```js
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
 if (monero.addressValid('44zrUGhyRHYbHYrfiGAtLdJMHfe5DtoFTBeVPCE6MGKzZA2bJ4tCJFuhYk3Wjp3YxEWoQU8So5xUiiArgnkBHZgX8Fyhv6e', 'mainnet')) {
     console.log('Address is valid');
 } else {
