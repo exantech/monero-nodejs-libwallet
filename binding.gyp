@@ -1,4 +1,34 @@
 {
+  "conditions": [
+    ['OS=="linux"', {
+      "variables": {
+        'boost_libraries': [
+          "-lboost_serialization", 
+          "-lboost_thread", 
+          "-lboost_system", 
+          "-lboost_date_time", 
+          "-lboost_filesystem", 
+          "-lboost_chrono", 
+          "-lboost_program_options", 
+          "-lboost_regex",
+        ]
+      }
+    }],
+    ['OS=="mac"', {
+      "variables": {
+        'boost_libraries': [
+          "-lboost_serialization-mt", 
+          "-lboost_thread-mt", 
+          "-lboost_system-mt", 
+          "-lboost_date_time-mt", 
+          "-lboost_filesystem-mt", 
+          "-lboost_chrono-mt", 
+          "-lboost_program_options-mt", 
+          "-lboost_regex-mt",
+        ]
+      }
+    }]
+  ],
   "targets": [
     {
       "target_name": "build_monero",
@@ -6,9 +36,6 @@
       "actions": [
         {
           "action_name": "retrieve_from_github",
-          "variables": {
-            "monero-branch": "release-v0.12-multisig-wallet-assembled"
-          },
           "inputs": "",
           "outputs": [
             "../lib/libwallet_merged.a", 
@@ -39,14 +66,7 @@
 			      "../lib/libeasylogging.a", 
 			      "../lib/liblmdb.a", 
 			      "../lib/libunbound.a", 
-			      "-lboost_serialization", 
-			      "-lboost_thread", 
-			      "-lboost_system", 
-			      "-lboost_date_time", 
-			      "-lboost_filesystem", 
-			      "-lboost_chrono", 
-			      "-lboost_program_options", 
-			      "-lboost_regex",
+            "<@(boost_libraries)",
 			      "-lssl",
             "-lcrypto",
             "-lz",
