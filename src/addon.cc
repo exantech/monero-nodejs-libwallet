@@ -1,8 +1,8 @@
-// addon.cc
 #include "wallet.h"
 #include "pendingtransaction.h"
 
-#include "misc_log_ex.h"
+extern void mlog_configure(const std::string &filename_base, bool console, const std::size_t max_log_file_size = 104850000);
+extern void mlog_set_log(const char *log);
 
 using namespace v8;
 
