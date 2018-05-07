@@ -3,14 +3,6 @@
     ['OS=="linux"', {
       "variables": {
         'additional_libraries': [
-          "-lboost_serialization", 
-          "-lboost_thread", 
-          "-lboost_system", 
-          "-lboost_date_time", 
-          "-lboost_filesystem", 
-          "-lboost_chrono", 
-          "-lboost_program_options", 
-          "-lboost_regex",
           "-lpcsclite",
         ]
       }
@@ -18,14 +10,6 @@
     ['OS=="mac"', {
       "variables": {
         'additional_libraries': [
-          "-lboost_serialization-mt", 
-          "-lboost_thread-mt", 
-          "-lboost_system-mt", 
-          "-lboost_date_time-mt", 
-          "-lboost_filesystem-mt", 
-          "-lboost_chrono-mt", 
-          "-lboost_program_options-mt", 
-          "-lboost_regex-mt",
           "-framework PCSC",
         ]
       }
@@ -68,6 +52,14 @@
 			      "../deps/libeasylogging.a", 
 			      "../deps/liblmdb.a", 
 			      "../deps/libunbound.a", 
+            "../deps/libboost_serialization.a", 
+            "../deps/libboost_thread.a", 
+            "../deps/libboost_system.a", 
+            "../deps/libboost_date_time.a", 
+            "../deps/libboost_filesystem.a", 
+            "../deps/libboost_chrono.a", 
+            "../deps/libboost_program_options.a", 
+            "../deps/libboost_regex.a",
             "<@(additional_libraries)",
 			      "-lssl",
             "-lcrypto",
