@@ -1,4 +1,6 @@
-const monero = require('./build/Debug/monero');
+const monero = require('monero-nodejs-libwallet');
+
+monero.setupLog(4);
 
 var wallet;
 var sent = false;
