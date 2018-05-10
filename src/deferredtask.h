@@ -2,7 +2,7 @@
 
 #include <node.h>
 #include <uv.h>
-
+#include <string>
 namespace exawallet {
 
 // only dynamic allocated
