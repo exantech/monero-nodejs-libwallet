@@ -87,6 +87,13 @@ public:
     static void RestoreMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void MultisigState(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    static void SignMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void VerifySignedMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+    // multisig signatures
+    static void SignMultisigParticipant(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void VerifyMessageWithPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+
     static v8::Persistent<v8::Function> constructor;
 
     Monero::Wallet* wallet_ = nullptr;

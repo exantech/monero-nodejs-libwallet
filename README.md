@@ -329,6 +329,25 @@ console.log('multisig threshold: ' + state.threshold); //number of required sign
 console.log('multisig total: ' + state.total); //number of participants
 ```
 
+### signMessage, verifySignedMessage
+**These functions only allowed for non-multisig wallets.**
+`signMessage` returns signature for arbitrary message.
+`verifySignedMessage` Verifies message's signature with public monero address. Returns `true` if the signature is valid:
+```js
+var signature = wallet1.signMessage('Hello, world!');
+console.log('signature valid: ' + wallet2.verifySignedMessage('Hello, world!', wallet1.address(), signature));
+```
+
+### signMultisigParticipant, verifyMessageWithPublicKey
+**These functions only allowed for multisig wallets.**
+`signMultisigParticipant` signs a message with your multisig public signer's key (**Note:** it's not equal to spend public key!) and returns the signature.
+`verifyMessageWithPublicKey` verifies message's signature with multisig public signer's key. Accepts message, multisig public signer's and the signature:
+```js
+var signature = wallet1.signMultisigParticipant('Hello, world!');
+var signerKey = wallet1.publicMultisigSignerKey();
+console.log('signature valid: ' + wallet2.verifyMessageWithPublicKey('Hello, world!', signerKey, signature));
+```
+
 ### getMultisigInfo
 Returns serialized to string multisig info data necessary for multisig wallet creation (see example below).
 
