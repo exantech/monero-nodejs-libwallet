@@ -157,7 +157,11 @@ void Wallet::Init(Isolate* isolate) {
         {"exportMultisigImages", ExportMultisigImages},
         {"importMultisigImages", ImportMultisigImages},
         {"restoreMultisigTransaction", RestoreMultisigTransaction},
-        {"multisigState", MultisigState}
+        {"multisigState", MultisigState},
+        {"signMessage", SignMessage},
+        {"verifySignedMessage", VerifySignedMessage},
+        {"signMultisigParticipant", SignMultisigParticipant},
+        {"verifyMessageWithPublicKey", VerifyMessageWithPublicKey}
     };
 
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
@@ -636,6 +640,88 @@ void Wallet::MultisigState(const v8::FunctionCallbackInfo<v8::Value>& args) {
              Uint32::NewFromUnsigned(isolate, state.total));
 
     args.GetReturnValue().Set(res);
+}
+
+void Wallet::SignMessage(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    auto signature = obj->wallet_->signMessage(toStdString(isolate, args[0]));
+    if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signature.c_str()));
+}
+
+void Wallet::VerifySignedMessage(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+
+    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsString() || !args[2]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts message, monero address and signature as string arguments")));
+        return;
+    }
+
+    auto message = toStdString(isolate, args[0]);
+    auto address = toStdString(isolate, args[1]);
+    auto signature = toStdString(isolate, args[2]);
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    bool valid = obj->wallet_->verifySignedMessage(message, address, signature);
+
+    if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(valid);
+}
+
+void Wallet::SignMultisigParticipant(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+        return;
+    }
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    auto signature = obj->wallet_->signMultisigParticipant(toStdString(isolate, args[0]));
+    if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signature.c_str()));
+}
+
+void Wallet::VerifyMessageWithPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+
+    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsString() || !args[2]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts message, monero public key and signature as string arguments")));
+        return;
+    }
+
+    auto message = toStdString(isolate, args[0]);
+    auto publicKey = toStdString(isolate, args[1]);
+    auto signature = toStdString(isolate, args[2]);
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    bool valid = obj->wallet_->verifyMessageWithPublicKey(message, publicKey, signature);
+
+    if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        return;
+    }
+
+    args.GetReturnValue().Set(valid);
 }
 
 } //namespace exawallet

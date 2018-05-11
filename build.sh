@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function contact_maintainer {
+	echo "If you see this message probably something has been changed in monero source tree. Please contact the maintainers"
+	exit 1
+}
+
 function die {
 	echo "Libwallet build failed. Check the instructions to build it manually: https://github.com/exantech/monero-nodejs-libwallet"
 	exit 1
@@ -16,6 +21,8 @@ fi
 
 cd monero
 git submodule update --init --recursive || die
+
+cp src/wallet/api/wallet2_api.h $CWD/include || contact_maintainer
 
 if [ ! -d "build" ]; then
 	mkdir build || die
