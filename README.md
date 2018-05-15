@@ -182,20 +182,15 @@ Subscibes on wallet emitted events:
 ```js
 wallet.on('newBlock', function (height) {
 	console.log("blockchain updated, height: " + height);
-});
-wallet.on('refreshed', function () {
+}).on('refreshed', function () {
 	console.log("wallet is synchronized");
-});
-wallet.on('updated', function () {
+}).on('updated', function () {
 	console.log("updated");
-});
-wallet.on('unconfirmedMoneyReceived', function(tx, amount) {
+}).on('unconfirmedMoneyReceived', function(tx, amount) {
 	console.log("unconfirmed money received. tx: " + tx + ", amount: " + amount);
-});
-wallet.on('moneyReceived', function(tx, amount) {
+}).on('moneyReceived', function(tx, amount) {
 	console.log("money received. tx: " + tx + ", amount: " + amount);
-});
-wallet.on('moneySpent', function(tx, amount) {
+}).on('moneySpent', function(tx, amount) {
 	console.log("money spent. tx: " + tx + ", amount: " + amount);
 });
 ```

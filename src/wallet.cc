@@ -233,17 +233,18 @@ void Wallet::On(const v8::FunctionCallbackInfo<v8::Value>& args) {
     auto isolate = args.GetIsolate();
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
 
-   if (args.Length() != 2) {
-       isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "2 arguments are required")));
-       return;
-   }
+    if (args.Length() != 2) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "2 arguments are required")));
+        return;
+    }
 
-   if (!args[0]->IsString() || !args[1]->IsFunction()) {
-       isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string and function arguments")));
-       return;
-   }
+    if (!args[0]->IsString() || !args[1]->IsFunction()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string and function arguments")));
+        return;
+    }
 
-   obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
+    obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::Store(const v8::FunctionCallbackInfo<v8::Value>& args) {
