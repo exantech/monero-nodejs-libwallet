@@ -195,6 +195,13 @@ wallet.on('newBlock', function (height) {
 });
 ```
 
+### off
+Unsubscribes from either one or all of events:
+```js
+wallet.off('newBlock'); //unsubscribes from 'newBlock' events
+wallet.off(); // unsubscribes from all events
+```
+
 ### store
 Asynchronously saves wallet into the file:
 ```js

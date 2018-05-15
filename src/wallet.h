@@ -41,6 +41,7 @@ public:
 
     static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void On(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Off(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static void Address(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Seed(const v8::FunctionCallbackInfo<v8::Value>& args);

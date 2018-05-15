@@ -127,6 +127,7 @@ void Wallet::Init(Isolate* isolate) {
         {"address", Address},
         {"seed", Seed},
         {"on", On},
+        {"off", Off},
         {"store", Store},
         {"path", Path},
         {"network", NetType},
@@ -244,6 +245,26 @@ void Wallet::On(const v8::FunctionCallbackInfo<v8::Value>& args) {
     }
 
     obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
+    args.GetReturnValue().Set(args.Holder());
+}
+
+void Wallet::Off(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    //delete all listeners
+    if (args.Length() == 0) {
+        obj->callbacks_.clear();
+        args.GetReturnValue().Set(args.Holder());
+        return;
+    }
+
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts no arguments or event name")));
+        return;
+    }
+
+    obj->callbacks_.erase(toStdString(isolate, args[0]));
     args.GetReturnValue().Set(args.Holder());
 }
 
