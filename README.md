@@ -81,7 +81,7 @@ monero.createWallet({
 	'path': 'test-wallet',
 	'password': '123', 
 	'network': 'mainnet',
-	'daemon_address': 'localhost:18081',
+	'daemonAddress': 'localhost:18081',
 }).then((wallet) => console.log('New wallet succesfully created: ' + wallet.address()))
    .catch((e) => console.log('Failed to create new wallet: ' + e));
 ```
@@ -92,7 +92,7 @@ Arguments object:
 | path | path to wallet file| yes|
 | password | password | yes |
 | network | one of mainnet (default) / stagenet / testnet| no|
-| daemon_address| remote node address| yes|
+| daemonAddress| remote node address| yes|
 | language| language to generate mnemonics for ('English' is default)| no|
 
 Returns promise object. Throws in case of arguments error.
@@ -105,7 +105,7 @@ monero.openWallet({
 	'path': 'test-wallet',
 	'password': '123', 
 	'network': 'mainnet',
-	'daemon_address': 'localhost:18081',
+	'daemonAddress': 'localhost:18081',
 }).then((wallet) => console.log('New wallet succesfully created: ' + wallet.address()))
    .catch((e) => console.log('Failed to create new wallet: ' + e));
 ```
@@ -117,7 +117,7 @@ Arguments object:
 | path | path to wallet file| yes|
 | password | password | yes |
 | network | one of mainnet (default) / stagenet / testnet| no|
-| daemon_address| remote node address| yes|
+| daemonAddress| remote node address| yes|
 | language| language to generate mnemonics for ('English' is default)| yes|
 
 Returns promise object. Throws in case of arguments error.
@@ -229,7 +229,7 @@ Accepts arguments object:
 |-----|-----|-----|
 | address | valid monero address | yes |
 | amount | monero atomic units as string | yes |
-| payment_id | valid payment id | no |
+| paymentId | valid payment id | no |
 | mixin | ring signature size (current minimum is `7`) | no |
 
 Throws in case of arguments error. 
