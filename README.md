@@ -256,12 +256,14 @@ Sets new password to the wallet:
 ```js
 wallet.setPassword('iamsherlocked');
 ```
+Returns `wallet` object.
 
 ### setRefreshFromBlockHeight
 Sets the blockchain height to start refresh from:
 ```js
 wallet.setRefreshFromBlockHeight(1555371);
 ```
+Returns `wallet` object.
 
 ### getRefreshFromBlockHeight
 ```js
@@ -281,6 +283,7 @@ if (wallet.trustedDamon()) {
     wallet.setTrustedDaemon(false); // trust no one
 }
 ```
+`setTrustedDaemon` returns `wallet` object.
 
 ### balance, unlockedBalance
 Returns wallet balance:

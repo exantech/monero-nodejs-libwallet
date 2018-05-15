@@ -315,6 +315,8 @@ void Wallet::SetPassword(const v8::FunctionCallbackInfo<v8::Value>& args) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), obj->wallet_->errorString().c_str())));
         return;
     }
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::SetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -327,6 +329,8 @@ void Wallet::SetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
     obj->wallet_->setRefreshFromBlockHeight(args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::GetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -369,6 +373,8 @@ void Wallet::SetTrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
     obj->wallet_->setTrustedDaemon(args[0]->ToBoolean(isolate)->Value());
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::TrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {
