@@ -127,6 +127,7 @@ void Wallet::Init(Isolate* isolate) {
         {"address", Address},
         {"seed", Seed},
         {"on", On},
+        {"off", Off},
         {"store", Store},
         {"path", Path},
         {"network", NetType},
@@ -233,17 +234,38 @@ void Wallet::On(const v8::FunctionCallbackInfo<v8::Value>& args) {
     auto isolate = args.GetIsolate();
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
 
-   if (args.Length() != 2) {
-       isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "2 arguments are required")));
-       return;
-   }
+    if (args.Length() != 2) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "2 arguments are required")));
+        return;
+    }
 
-   if (!args[0]->IsString() || !args[1]->IsFunction()) {
-       isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string and function arguments")));
-       return;
-   }
+    if (!args[0]->IsString() || !args[1]->IsFunction()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string and function arguments")));
+        return;
+    }
 
-   obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
+    obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
+    args.GetReturnValue().Set(args.Holder());
+}
+
+void Wallet::Off(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    //delete all listeners
+    if (args.Length() == 0) {
+        obj->callbacks_.clear();
+        args.GetReturnValue().Set(args.Holder());
+        return;
+    }
+
+    if (args.Length() != 1 || !args[0]->IsString()) {
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts no arguments or event name")));
+        return;
+    }
+
+    obj->callbacks_.erase(toStdString(isolate, args[0]));
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::Store(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -314,6 +336,8 @@ void Wallet::SetPassword(const v8::FunctionCallbackInfo<v8::Value>& args) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), obj->wallet_->errorString().c_str())));
         return;
     }
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::SetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -326,6 +350,8 @@ void Wallet::SetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
     obj->wallet_->setRefreshFromBlockHeight(args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::GetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -368,6 +394,8 @@ void Wallet::SetTrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
     obj->wallet_->setTrustedDaemon(args[0]->ToBoolean(isolate)->Value());
+
+    args.GetReturnValue().Set(args.Holder());
 }
 
 void Wallet::TrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {

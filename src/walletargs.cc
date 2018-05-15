@@ -79,8 +79,8 @@ std::string CreateWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
         return std::string("Required property not found: password");
     }
 
-    if (!getRequiredProperty<std::string>(isolate, obj, "daemon_address", daemonAddress)) {
-        return std::string("Required property not found: daemon_address");
+    if (!getRequiredProperty<std::string>(isolate, obj, "daemonAddress", daemonAddress)) {
+        return std::string("Required property not found: daemonAddress");
     }
 
     language = getOptionalProperty<std::string>(isolate, obj, "language", "English");
@@ -111,8 +111,8 @@ std::string OpenWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
     if (!getRequiredProperty<std::string>(isolate, obj, "password", password)) {
         return std::string("Required property not found: password");
     }
-    if (!getRequiredProperty<std::string>(isolate, obj, "daemon_address", daemonAddress)) {
-        return std::string("Required property not found: daemon_address");
+    if (!getRequiredProperty<std::string>(isolate, obj, "daemonAddress", daemonAddress)) {
+        return std::string("Required property not found: daemonAddress");
     }
 
     auto net = getOptionalProperty<std::string>(isolate, obj, "network", "mainnet");
@@ -146,7 +146,7 @@ std::string CreateTransactionArgs::Init(const FunctionCallbackInfo<Value>& args)
         return std::string("Required property not found: amount");
     }
     amount = std::stoul(amountStr);
-    paymentId = getOptionalProperty<std::string>(isolate, obj, "payment_id", "");
+    paymentId = getOptionalProperty<std::string>(isolate, obj, "paymentId", "");
     mixin = getOptionalProperty<uint32_t>(isolate, obj, "mixin", MINIMAL_MIXIN);
 
     if (mixin < MINIMAL_MIXIN) {
