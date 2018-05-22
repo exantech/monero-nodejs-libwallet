@@ -1,6 +1,6 @@
 {
   "name": "monero-nodejs-libwallet",
-  "version": "0.1.14",
+  "version": "0.2.0",
   "description": "Monero libwallet native addon. Under development at the moment",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -34,7 +34,7 @@
     "node-pre-gyp": "^0.9.1"
   },
   "devDependencies": {
-    "aws-sdk": "^2.232.1",
+    "aws-sdk": "^2.244.1",
     "node-gyp": "^3.6.2"
   },
   "bundledDependencies": [
