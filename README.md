@@ -36,7 +36,7 @@ $ git clone https://github.com/exantech/monero-nodejs-libwallet
 
 Run build:
 ```sh
-$ node-pre-gyp configure build
+$ npm run build
 ```
 
 After successfull build set up your project's `package.json`:
