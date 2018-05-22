@@ -3,6 +3,7 @@
   "version": "0.1.14",
   "description": "Monero libwallet native addon. Under development at the moment",
   "main": "index.js",
+  "typings": "index.d.ts",
   "directories": {
     "lib": "lib"
   },
