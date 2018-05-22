@@ -33,7 +33,8 @@
     "node-pre-gyp": "^0.9.1"
   },
   "devDependencies": {
-    "aws-sdk": "^2.232.1"
+    "aws-sdk": "^2.232.1",
+    "node-gyp": "^3.6.2"
   },
   "bundledDependencies": [
     "node-pre-gyp"
@@ -46,6 +47,7 @@
     "host": "https://monero-nodejs-addon.s3.amazonaws.com"
   },
   "scripts": {
+    "build": "node-pre-gyp configure build",
     "prepublishOnly": "npm ls",
     "install": "node-pre-gyp install --fallback-to-build"
   }
