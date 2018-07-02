@@ -108,6 +108,18 @@ void Wallet::OpenWallet(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(promise);
 }
 
+void Wallet::RecoveryWallet(const FunctionCallbackInfo<Value>& args) {
+    RecoveryWalletArgs walletArgs;
+    std::string error = walletArgs.Init(args);
+    if (!error.empty()) {
+        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), error.c_str())));
+        return;
+    }
+
+    RecoveryWalletTask* task = new RecoveryWalletTask(args.GetIsolate(), walletArgs);
+    auto promise = task->Enqueue(args.GetIsolate());
+    args.GetReturnValue().Set(promise);
+}
 MaybeLocal<Function> Wallet::FindCallback(Isolate* isolate, const std::string& name) {
     auto it = callbacks_.find(name);
     if (it == callbacks_.end()) {

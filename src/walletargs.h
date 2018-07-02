@@ -26,6 +26,21 @@ struct OpenWalletArgs {
     Monero::NetworkType nettype;
 };
 
+
+struct RecoveryWalletArgs {
+    //returns error string
+    std::string 
+    Init(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+    std::string path;
+    std::string password;
+    std::string daemonAddress;
+    Monero::NetworkType nettype;
+    std::string mnemonic;
+    uint64_t restoreHeight;
+};
+
+
 struct CreateTransactionArgs {
     //returns error string
     std::string Init(const v8::FunctionCallbackInfo<v8::Value>& args);

@@ -29,6 +29,19 @@ private:
     Monero::Wallet* wallet_ = nullptr;
 };
 
+class RecoveryWalletTask: public DeferredTask {
+public:
+    RecoveryWalletTask(v8::Isolate* isolate, const RecoveryWalletArgs& args): DeferredTask(isolate), args_(args) {}
+
+    virtual std::string doWork() override;
+    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+
+private:
+    RecoveryWalletArgs args_;
+    Monero::Wallet* wallet_ = nullptr;
+};
+
+
 class StoreWalletTask: public DeferredTask {
 public:
     StoreWalletTask(v8::Isolate* isolate, Monero::Wallet* wallet): DeferredTask(isolate), wallet_(wallet) {}

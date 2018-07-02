@@ -66,6 +66,7 @@ void Init(Local<Object> exports) {
     NODE_SET_METHOD(exports, "createWallet", Wallet::CreateWallet);
     NODE_SET_METHOD(exports, "walletExists", Wallet::WalletExists);
     NODE_SET_METHOD(exports, "openWallet", Wallet::OpenWallet);
+    NODE_SET_METHOD(exports, "recoveryWallet", Wallet::RecoveryWallet);
     NODE_SET_METHOD(exports, "genPaymentId", Wallet::GenPaymentId);
     NODE_SET_METHOD(exports, "paymentIdValid", Wallet::PaymentIdValid);
     NODE_SET_METHOD(exports, "addressValid", Wallet::AddressValid);

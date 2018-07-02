@@ -129,6 +129,43 @@ std::string OpenWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
     return {};
 }
 
+
+std::string RecoveryWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
+    if (args.Length() != 1 || !args[0]->IsObject()) {
+        return "Argument must be an object";
+    }
+
+    auto isolate = args.GetIsolate();
+    auto obj = args[0]->ToObject(isolate);
+    if (!getRequiredProperty<std::string>(isolate, obj, "path", path)) {
+        return std::string("Required property not found: path");
+    }
+    if (!getRequiredProperty<std::string>(isolate, obj, "password", password)) {
+        return std::string("Required property not found: password");
+    }
+    if (!getRequiredProperty<std::string>(isolate, obj, "daemonAddress", daemonAddress)) {
+        return std::string("Required property not found: daemonAddress");
+    }
+
+    auto net = getOptionalProperty<std::string>(isolate, obj, "network", "mainnet");
+    if (net == "mainnet") {
+        nettype = Monero::MAINNET;
+    } else if (net == "testnet") {
+        nettype = Monero::TESTNET;
+    } else if (net == "stagenet") {
+        nettype = Monero::STAGENET;
+    } else {
+        return "Invalid value for network: " + net;
+    }
+
+    if(!getRequiredProperty<std::string>(isolate, obj, "mnemonic", mnemonic)) {
+        return std::string("Required property not found: mnemonic");
+    }
+
+    return {};
+}
+
+
 std::string CreateTransactionArgs::Init(const FunctionCallbackInfo<Value>& args) {
     if (args.Length() != 1 || !args[0]->IsObject()) {
         return "Argument must be an object";
