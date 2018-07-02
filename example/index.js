@@ -10,12 +10,16 @@ var args = {
 	'path': path,
 	'password': '123', 
 	'network': 'mainnet',
-	'daemon_address': 'localhost:18081',
+	'daemonAddress': 'monero.exan.tech:18081',
+	'mnemonic' : 'spud jerseys ledge fever damp nephew swung bimonthly nouns gave actress sample gemstone fawns hurried judge lava dilute governing ensign okay unusual loaded morsel dilute'
 }
 
 if (!monero.walletExists(path)) {
 	console.log("wallet doesn't exist. creating new one: " + path);
-	promise = monero.createWallet(args);
+	if(args.mnemonic)
+		promise = monero.recoveryWallet(args)
+	else
+		promise = monero.createWallet(args);
 } else {
 	console.log("wallet already exists. opening: " + path);
 	promise = monero.openWallet(args);
