@@ -1,6 +1,6 @@
 const monero = require('monero-nodejs-libwallet');
 
-monero.setupLog(4);
+monero.setupLog(1);
 
 var wallet;
 var sent = false;
@@ -10,8 +10,9 @@ var args = {
 	'path': path,
 	'password': '123', 
 	'network': 'mainnet',
-	'daemonAddress': 'monero.exan.tech:18081',
-	'mnemonic' : 'spud jerseys ledge fever damp nephew swung bimonthly nouns gave actress sample gemstone fawns hurried judge lava dilute governing ensign okay unusual loaded morsel dilute'
+	'daemonAddress': 'monero.exan.tech:18081'
+	,'restoreHeight': 1608000
+	,'mnemonic' : 'nifty inflamed against focus gasp ethics spying gulp tiger cogs evicted cohesive woken nylon erosion tell saved fatal alkaline acquire lemon maps hull imitate saved'
 }
 
 if (!monero.walletExists(path)) {
@@ -30,10 +31,14 @@ const nextTick = () => {
     	console.log("address: " + wallet.address());
     	console.log("balance: " + wallet.balance());
     	console.log("unlocked balance: " + wallet.unlockedBalance());
-    	console.log("seed: " + wallet.seed());
+		console.log("seed: " + wallet.seed());
+		console.log("secret view key: " + wallet.secretViewKey());
+		console.log("secret spend key: " + wallet.secretSpendKey());
+		console.log("public view key: " + wallet.publicViewKey());
+		console.log("public spend key: " + wallet.publicSpendKey());
     }
 
-    setTimeout(nextTick, 2000);
+    setTimeout(nextTick, 10000);
 }
 
 promise

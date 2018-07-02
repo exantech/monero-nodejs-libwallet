@@ -64,6 +64,10 @@ uint32_t convertValue<uint32_t>(Isolate* isolate, Local<Value> value) {
     return value->ToUint32(isolate->GetCurrentContext()).ToLocalChecked()->Value();
 }
 
+template<>
+uint64_t convertValue<uint64_t>(Isolate* isolate, Local<Value> value) {
+    return value->ToUint32(isolate->GetCurrentContext()).ToLocalChecked()->Value();
+}
 std::string CreateWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
     if (args.Length() != 1 || !args[0]->IsObject()) {
         return "Argument must be an object";
