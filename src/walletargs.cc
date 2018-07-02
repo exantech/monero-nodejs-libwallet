@@ -158,6 +158,8 @@ std::string RecoveryWalletArgs::Init(const FunctionCallbackInfo<Value>& args) {
         return "Invalid value for network: " + net;
     }
 
+    restoreHeight = getOptionalProperty<uint64_t>(isolate, obj, "restoreHeight", 0);
+
     if(!getRequiredProperty<std::string>(isolate, obj, "mnemonic", mnemonic)) {
         return std::string("Required property not found: mnemonic");
     }

@@ -29,8 +29,7 @@ struct OpenWalletArgs {
 
 struct RecoveryWalletArgs {
     //returns error string
-    std::string 
-    Init(const v8::FunctionCallbackInfo<v8::Value>& args);
+    std::string Init(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     std::string path;
     std::string password;
