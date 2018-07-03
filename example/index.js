@@ -28,9 +28,9 @@ if (!monero.walletExists(path)) {
 
 const nextTick = () => {
     if (wallet) {
-    	console.log("address: " + wallet.address());
-    	console.log("balance: " + wallet.balance());
-    	console.log("unlocked balance: " + wallet.unlockedBalance());
+		console.log("address: " + wallet.address());
+		console.log("balance: " + wallet.balance());
+		console.log("unlocked balance: " + wallet.unlockedBalance());
 		console.log("seed: " + wallet.seed());
 		console.log("secret view key: " + wallet.secretViewKey());
 		console.log("secret spend key: " + wallet.secretSpendKey());
