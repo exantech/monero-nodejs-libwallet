@@ -20,7 +20,7 @@ public:
     static void WalletExists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void CreateWallet(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void OpenWallet(const v8::FunctionCallbackInfo<v8::Value>& args);
-
+    static void RecoveryWallet(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void GenPaymentId(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args);

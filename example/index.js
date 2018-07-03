@@ -1,6 +1,6 @@
 const monero = require('monero-nodejs-libwallet');
 
-monero.setupLog(4);
+monero.setupLog(1);
 
 var wallet;
 var sent = false;
@@ -10,12 +10,17 @@ var args = {
 	'path': path,
 	'password': '123', 
 	'network': 'mainnet',
-	'daemon_address': 'localhost:18081',
+	'daemonAddress': 'monero.exan.tech:18081'
+	,'restoreHeight': 1608000
+	,'mnemonic' : 'nifty inflamed against focus gasp ethics spying gulp tiger cogs evicted cohesive woken nylon erosion tell saved fatal alkaline acquire lemon maps hull imitate saved'
 }
 
 if (!monero.walletExists(path)) {
 	console.log("wallet doesn't exist. creating new one: " + path);
-	promise = monero.createWallet(args);
+	if(args.mnemonic)
+		promise = monero.recoveryWallet(args)
+	else
+		promise = monero.createWallet(args);
 } else {
 	console.log("wallet already exists. opening: " + path);
 	promise = monero.openWallet(args);
@@ -23,13 +28,17 @@ if (!monero.walletExists(path)) {
 
 const nextTick = () => {
     if (wallet) {
-    	console.log("address: " + wallet.address());
-    	console.log("balance: " + wallet.balance());
-    	console.log("unlocked balance: " + wallet.unlockedBalance());
-    	console.log("seed: " + wallet.seed());
+		console.log("address: " + wallet.address());
+		console.log("balance: " + wallet.balance());
+		console.log("unlocked balance: " + wallet.unlockedBalance());
+		console.log("seed: " + wallet.seed());
+		console.log("secret view key: " + wallet.secretViewKey());
+		console.log("secret spend key: " + wallet.secretSpendKey());
+		console.log("public view key: " + wallet.publicViewKey());
+		console.log("public spend key: " + wallet.publicSpendKey());
     }
 
-    setTimeout(nextTick, 2000);
+    setTimeout(nextTick, 10000);
 }
 
 promise

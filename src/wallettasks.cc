@@ -47,6 +47,31 @@ Local<Value> OpenWalletTask::afterWork(Isolate* isolate, std::string& error) {
     return Wallet::NewInstance(isolate, wallet_);
 }
 
+
+
+std::string RecoveryWalletTask::doWork() {
+    auto manager = Monero::WalletManagerFactory::getWalletManager();
+
+    wallet_ = manager->recoveryWallet(args_.path,
+                                       args_.password,
+                                       args_.mnemonic,
+                                       args_.nettype,
+                                       args_.restoreHeight);
+    
+    if (!wallet_->init(args_.daemonAddress)) {
+        return "Couldn't init wallet";
+    }
+
+    wallet_->setTrustedDaemon(true);
+    wallet_->startRefresh();
+    return {};
+}
+
+Local<Value> RecoveryWalletTask::afterWork(Isolate* isolate, std::string& error) {
+    return Wallet::NewInstance(isolate, wallet_);
+}
+
+
 std::string StoreWalletTask::doWork() {
     if (!wallet_->store(wallet_->path())) {
         return "Couldn't store wallet";

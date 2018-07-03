@@ -122,6 +122,34 @@ Arguments object:
 
 Returns promise object. Throws in case of arguments error.
 
+### recoveryWallet
+Recovers wallet from seed mnemonic asynchronously
+```js
+const monero = require('monero-nodejs-libwallet');
+monero.recoveryWallet({
+	'path': 'test-wallet',
+	'password': '123', 
+	'network': 'mainnet',
+	'daemonAddress': 'localhost:18081',
+	'restoreHeight': 1608000,
+	'mnemonic': 'nifty inflamed against focus gasp ethics spying gulp tiger cogs evicted cohesive woken nylon erosion tell saved fatal alkaline acquire lemon maps hull imitate saved'
+}).then((wallet) => console.log('New wallet succesfully created: ' + wallet.address()))
+   .catch((e) => console.log('Failed to create new wallet: ' + e));
+```
+
+Arguments object:
+
+| property | description | required |
+|----------|----------|----------|
+| path | path to wallet file| yes|
+| password | password | yes |
+| mnemonic | seed phrase | yes |
+| daemonAddress| remote node address| yes|
+| network | one of mainnet (default) / stagenet / testnet| no|
+| restoreHeight | height to restore wallet at| no |
+
+Returns promise object. Throws in case of arguments error.
+
 ### walletExists
 Checks if wallet exists:
 ```js
