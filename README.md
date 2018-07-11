@@ -25,7 +25,7 @@ Run build:
 $ npm run build
 ```
 
-Link local your build (using [`npm link`](https://docs.npmjs.com/cli/link) command):
+Link your local build (using [`npm link`](https://docs.npmjs.com/cli/link) command):
 ```sh
 $ npm link
 ```
