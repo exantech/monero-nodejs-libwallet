@@ -20,6 +20,11 @@ Checkout the repository:
 $ git clone https://github.com/exantech/monero-nodejs-libwallet
 ```
 
+Install prerequisites (example for ubuntu below)
+```sh
+$ sudo apt-get install libpcsclite-dev libzmq-dev
+```
+
 Run build:
 ```sh
 $ npm run build
