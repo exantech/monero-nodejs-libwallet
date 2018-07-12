@@ -7,7 +7,7 @@ BOOST_VERSION2=1_66_0
 
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
-THREADS=${shell sysctl -n hw.ncpu}
+THREADS=4 #${shell sysctl -n hw.ncpu}
 
 .PHONY: all
 all: binding.gyp deps
