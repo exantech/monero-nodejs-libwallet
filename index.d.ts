@@ -109,6 +109,14 @@ declare namespace monero {
     daemonAddress: string,
     language: Language,
   }): Promise<Wallet>;
+  function recoveryWallet(options: {
+    path: string,
+    password: string,
+    network?: Network,
+    daemonAddress: string,
+    mnemonic: string,
+    restoreHeight?: number,
+  }): Promise<Wallet>;
   function walletExists(path: string): boolean;
   function genPaymentId(): string;
   function paymentIdValid(paymentId: string): boolean;
