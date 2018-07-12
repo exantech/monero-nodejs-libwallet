@@ -3,22 +3,8 @@ Wrapper for monero libwallet. All created wallet files are compatible with `mone
 Check `example/index.js` for usage examples of the library. 
 
 # Installation
-To start using the library is pretty straightword. Add the dependency into your `package.json`: 
-```js
-{
-  "name": "mywallet",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "monero-nodejs-libwallet": "*"
-  }
-}
-```
-
-Install it:
 ```sh
-$ npm install
+$ npm install monero-nodejs-libwallet
 ```
 `npm` will try to find and download precompiled binaries for your node version, OS and architecture. Then include require statement in your `js`-code and use it:
 ```js
@@ -39,23 +25,14 @@ Run build:
 $ npm run build
 ```
 
-After successfull build set up your project's `package.json`:
-```js
-{
-  "name": "example",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "monero-nodejs-libwallet": "file:<path-to-libwallet>"
-  }
-}
-
+Link your local build (using [`npm link`](https://docs.npmjs.com/cli/link) command):
+```sh
+$ npm link
 ```
 
-Install it locally:
+Then, in your project directory:
 ```sh
-$ npm install
+$ npm link monero-nodejs-libwallet
 ```
 
 And use it in you source code:
