@@ -30,7 +30,7 @@
             "../deps/liblmdb.a", 
             "../deps/libunbound.a", 
           ],
-          "action": ["./build.sh"],
+          "action": ["make","deps"],
           "message": "Building monero libraries",
         },
       ],
