@@ -49,7 +49,6 @@ monero/build: boost monero
 		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
 		-DEMBEDDED_WALLET=1 \
 		..
-#		-DZMQ_INCLUDE_PATH=${PWD}/zmq \
 
 	cd monero/build && make -j${THREADS} wallet_merged epee easylogging lmdb unbound VERBOSE=1
 	cp monero/build/lib/libwallet_merged.a ${PWD}/deps
