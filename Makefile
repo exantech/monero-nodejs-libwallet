@@ -2,12 +2,11 @@ MONERO_BRANCH?="release-v0.12-multisig-wallet-assembled"
 MONERO_BUILD_TYPE=release
 
 BOOST_VERSION=1.66.0
-BOOST_VERSION2=1_66_0
-
+BOOST_FILENAME=boost_1_66_0
 
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
-THREADS=4 #${shell sysctl -n hw.ncpu}
+THREADS=4
 
 .PHONY: all
 all: binding.gyp deps
@@ -15,20 +14,20 @@ all: binding.gyp deps
 clean:
 	rm -rf boost
 	rm -rf monero/build
-	rm -rf boost_${BOOST_VERSION2}
+	rm -rf ${BOOST_FILENAME}
 	rm -rf deps
 	rm -rf build
 
-boost_${BOOST_VERSION2}.tar.bz2: 
-	curl -L -o "boost_${BOOST_VERSION2}.tar.bz2" \
-            http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION2}.tar.bz2/download
+${BOOST_FILENAME}.tar.bz2: 
+	curl -L -o "${BOOST_FILENAME}.tar.bz2" \
+            http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
 
-boost_${BOOST_VERSION2}: boost_${BOOST_VERSION2}.tar.bz2
-	tar xf boost_${BOOST_VERSION2}.tar.bz2
+${BOOST_FILENAME}: ${BOOST_FILENAME}.tar.bz2
+	tar xf ${BOOST_FILENAME}.tar.bz2
 
-boost: boost_${BOOST_VERSION2}
-	cd boost_${BOOST_VERSION2} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
-	cd boost_${BOOST_VERSION2} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
+boost: ${BOOST_FILENAME}
+	cd ${BOOST_FILENAME} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
+	cd ${BOOST_FILENAME} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
 		threading=multi threadapi=pthread --prefix=${PWD}/boost install
 
 deps: boost monero/build
@@ -48,11 +47,9 @@ monero/build: boost monero
 		-DBOOST_ROOT=${PWD}/boost \
 		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
 		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
-		-DZMQ_INCLUDE_PATH=${PWD}/zmq \
+		-DEMBEDDED_WALLET=1 \
 		..
-
-#		-D OPENSSL_ROOT_DIR=${OPENSSL} \
-#		-D OPENSSL_CRYPTO_LIBRARY=${OPENSSL}/libcrypto.a -D OPENSSL_SSL_LIBRARY=${OPENSSL}/libssl.a \
+#		-DZMQ_INCLUDE_PATH=${PWD}/zmq \
 
 	cd monero/build && make -j${THREADS} wallet_merged epee easylogging lmdb unbound VERBOSE=1
 	cp monero/build/lib/libwallet_merged.a ${PWD}/deps
