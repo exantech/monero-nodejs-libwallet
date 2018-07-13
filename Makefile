@@ -1,33 +1,34 @@
 MONERO_BRANCH?="release-v0.12-multisig-wallet-assembled"
-MONERO_BUILD_TYPE=release
+MONERO_BUILD_TYPE=Release
 
 BOOST_VERSION=1.66.0
-BOOST_FILENAME=boost_1_66_0
+BOOST_DIRNAME=boost_1_66_0
 
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
-THREADS=4
+THREADS?=1
 
 .PHONY: all
 all: binding.gyp deps
-	node-pre-gyp configure build
+	node_modules/.bin/node-pre-gyp configure build
 clean:
 	rm -rf boost
 	rm -rf monero/build
-	rm -rf ${BOOST_FILENAME}
+	rm -rf ${BOOST_DIRNAME}
 	rm -rf deps
 	rm -rf build
+	rm -rf lib
 
-${BOOST_FILENAME}.tar.bz2: 
-	curl -L -o "${BOOST_FILENAME}.tar.bz2" \
-            http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
+${BOOST_DIRNAME}.tar.bz2: 
+	curl -L -o "${BOOST_DIRNAME}.tar.bz2" \
+            http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_DIRNAME}.tar.bz2/download
 
-${BOOST_FILENAME}: ${BOOST_FILENAME}.tar.bz2
-	tar xf ${BOOST_FILENAME}.tar.bz2
+${BOOST_DIRNAME}: ${BOOST_DIRNAME}.tar.bz2
+	tar xf ${BOOST_DIRNAME}.tar.bz2
 
-boost: ${BOOST_FILENAME}
-	cd ${BOOST_FILENAME} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
-	cd ${BOOST_FILENAME} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
+boost: ${BOOST_DIRNAME}
+	cd ${BOOST_DIRNAME} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
+	cd ${BOOST_DIRNAME} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
 		threading=multi threadapi=pthread --prefix=${PWD}/boost install
 
 deps: boost monero/build
