@@ -1,16 +1,18 @@
 MONERO_BRANCH?="release-v0.12-multisig-wallet-assembled"
-MONERO_BUILD_TYPE=Release
+MONERO_BUILD_TYPE?=Release
 
 BOOST_VERSION=1.66.0
 BOOST_DIRNAME=boost_1_66_0
 
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
-THREADS?=1
+THREADS?=${shell python -c 'import multiprocessing as mp; print(mp.cpu_count())'}
 
 .PHONY: all
 all: binding.gyp deps
 	node_modules/.bin/node-pre-gyp configure build
+
+.PHONY: clean
 clean:
 	rm -rf boost
 	rm -rf monero/build
@@ -26,11 +28,13 @@ ${BOOST_DIRNAME}.tar.bz2:
 ${BOOST_DIRNAME}: ${BOOST_DIRNAME}.tar.bz2
 	tar xf ${BOOST_DIRNAME}.tar.bz2
 
+.PHONY: boost
 boost: ${BOOST_DIRNAME}
 	cd ${BOOST_DIRNAME} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
 	cd ${BOOST_DIRNAME} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
 		threading=multi threadapi=pthread --prefix=${PWD}/boost install
 
+.PHONY: deps
 deps: boost monero/build
 	mkdir -p deps
 	cp boost/lib/*.a deps
