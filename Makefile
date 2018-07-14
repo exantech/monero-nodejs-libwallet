@@ -28,7 +28,6 @@ ${BOOST_DIRNAME}.tar.bz2:
 ${BOOST_DIRNAME}: ${BOOST_DIRNAME}.tar.bz2
 	tar xf ${BOOST_DIRNAME}.tar.bz2
 
-.PHONY: boost
 boost: ${BOOST_DIRNAME}
 	cd ${BOOST_DIRNAME} && ./bootstrap.sh --with-libraries=${BOOST_LIBS}
 	cd ${BOOST_DIRNAME} && ./b2 -j${THREADS} cxxflags=-fPIC cflags=-fPIC -a link=static \
