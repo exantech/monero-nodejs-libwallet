@@ -3,5 +3,4 @@
 /monero
 /node_modules
 /build
-/boost
-boost*.tar.gz2
+boost*
