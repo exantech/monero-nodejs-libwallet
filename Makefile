@@ -6,7 +6,7 @@ BOOST_DIRNAME=boost_1_66_0
 
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
-THREADS?=
+THREADS?=1
 
 .PHONY: all
 all: binding.gyp deps
