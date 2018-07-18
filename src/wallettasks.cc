@@ -14,6 +14,15 @@ std::string CreateWalletTask::doWork() {
     }
 
     wallet_ = manager->createWallet(args_.path, args_.password, args_.language, args_.nettype);
+
+    if (!wallet_) {
+        return "WalletManager returned null wallet pointer";
+    }
+
+    if (!wallet_->errorString().empty()) {
+        return wallet_->errorString();
+    }
+
     if (!wallet_->init(args_.daemonAddress)) {
         return "Couldn't init wallet";
     }
@@ -34,6 +43,15 @@ std::string OpenWalletTask::doWork() {
     }
 
     wallet_ = manager->openWallet(args_.path, args_.password, args_.nettype);
+
+    if (!wallet_) {
+        return "WalletManager returned null wallet pointer";
+    }
+
+    if (!wallet_->errorString().empty()) {
+        return wallet_->errorString();
+    }
+
     if (!wallet_->init(args_.daemonAddress)) {
         return "Couldn't init wallet";
     }
@@ -47,8 +65,6 @@ Local<Value> OpenWalletTask::afterWork(Isolate* isolate, std::string& error) {
     return Wallet::NewInstance(isolate, wallet_);
 }
 
-
-
 std::string RecoveryWalletTask::doWork() {
     auto manager = Monero::WalletManagerFactory::getWalletManager();
 
@@ -57,6 +73,14 @@ std::string RecoveryWalletTask::doWork() {
                                        args_.mnemonic,
                                        args_.nettype,
                                        args_.restoreHeight);
+
+    if (!wallet_) {
+        return "WalletManager returned null wallet pointer";
+    }
+
+    if (!wallet_->errorString().empty()) {
+        return wallet_->errorString();
+    }
     
     if (!wallet_->init(args_.daemonAddress)) {
         return "Couldn't init wallet";
@@ -71,7 +95,6 @@ Local<Value> RecoveryWalletTask::afterWork(Isolate* isolate, std::string& error)
     return Wallet::NewInstance(isolate, wallet_);
 }
 
-
 std::string StoreWalletTask::doWork() {
     if (!wallet_->store(wallet_->path())) {
         return "Couldn't store wallet";
@@ -79,13 +102,14 @@ std::string StoreWalletTask::doWork() {
 
     return {};
 }
+
 Local<Value> StoreWalletTask::afterWork(Isolate* isolate, std::string& error) {
     return Undefined(isolate);
 }
 
 std::string CreateTransactionTask::doWork() {
     transaction_ = wallet_->createTransaction(args_.address, args_.paymentId, args_.amount, args_.mixin);
-    if (wallet_->status() != Monero::Wallet::Status_Ok) {
+    if (!wallet_->errorString().empty()) {
         return wallet_->errorString();
     }
 
@@ -110,7 +134,7 @@ Local<Value> CommitTransactionTask::afterWork(Isolate* isolate, std::string& err
 
 std::string RestoreMultisigTransactionTask::doWork() {
     transaction_ = wallet_->restoreMultisigTransaction(transactionData_);
-    if (wallet_->status() != Monero::Wallet::Status_Ok) {
+    if (!wallet_->errorString().empty()) {
         return wallet_->errorString();
     }
 
