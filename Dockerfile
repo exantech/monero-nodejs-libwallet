@@ -9,4 +9,4 @@ RUN bash -c "curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/
 
 RUN bash -c "source /root/.nvm/nvm.sh && nvm install v8 && nvm install v10"
 
-WORKDIR /usr/src
+WORKDIR /usr/src/monero-nodejs-libwallet
