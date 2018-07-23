@@ -82,9 +82,9 @@ declare namespace monero {
     pauseRefresh(): void;
     startRefresh(): void;
     multisigState(): MultisigState;
-    signMessage(message: string): string; // TODO non-multisig only
-    verifySignedMessage(message: string, address: string, signature: string): boolean; // TODO non-multisig only
-    signMultisigParticipant(message: string): string; // TODO multisig only
+    signMessage(message: string): string; // non-multisig only
+    verifySignedMessage(message: string, address: string, signature: string): boolean; // non-multisig only
+    signMultisigParticipant(message: string): string; // multisig only
     verifyMessageWithPublicKey(message: string, key: string, signature: string): boolean;
     getMultisigInfo(): string;
     makeMultisig(multisigInfos: string[], walletsNumber: number): string;
@@ -94,13 +94,13 @@ declare namespace monero {
     restoreMultisigTransaction(sign: string): Promise<Transaction>;
   };
 
-  function setupLog(level: number, output: string): void;
+  function setupLog(level: number, output?: string): void;
   function createWallet(options: {
     path: string,
     password: string,
     network?: Network,
     daemonAddress: string,
-    language: Language,
+    language?: Language,
   }): Promise<Wallet>;
   function openWallet(options: {
     path: string,
