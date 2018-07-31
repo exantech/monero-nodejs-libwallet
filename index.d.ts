@@ -107,7 +107,7 @@ declare namespace monero {
     password: string,
     network?: Network,
     daemonAddress: string,
-    language: Language,
+    language?: Language,
   }): Promise<Wallet>;
   function recoveryWallet(options: {
     path: string,

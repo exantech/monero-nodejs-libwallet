@@ -100,7 +100,7 @@ Arguments object:
 | password | password | yes |
 | network | one of mainnet (default) / stagenet / testnet| no|
 | daemonAddress| remote node address| yes|
-| language| language to generate mnemonics for ('English' is default)| yes|
+| language| language to generate mnemonics for ('English' is default)| no|
 
 Returns promise object. Throws in case of arguments error.
 
