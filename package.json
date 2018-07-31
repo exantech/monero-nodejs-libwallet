@@ -1,6 +1,6 @@
 {
   "name": "monero-nodejs-libwallet",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Monero libwallet native addon. Under development at the moment",
   "main": "index.js",
   "typings": "index.d.ts",

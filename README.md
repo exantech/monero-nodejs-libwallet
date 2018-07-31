@@ -60,7 +60,7 @@ Create new wallet asynchronously:
 ```js
 const monero = require('monero-nodejs-libwallet');
 monero.createWallet({
-	'path': 'test-wallet',
+	'path': path.join(__dirname, 'test-wallet'),
 	'password': '123', 
 	'network': 'mainnet',
 	'daemonAddress': 'localhost:18081',
@@ -84,7 +84,7 @@ Opens existing wallet asynchronously:
 ```js
 const monero = require('monero-nodejs-libwallet');
 monero.openWallet({
-	'path': 'test-wallet',
+	'path': path.join(__dirname, 'test-wallet'),
 	'password': '123', 
 	'network': 'mainnet',
 	'daemonAddress': 'localhost:18081',
@@ -109,7 +109,7 @@ Recovers wallet from seed mnemonic asynchronously
 ```js
 const monero = require('monero-nodejs-libwallet');
 monero.recoveryWallet({
-	'path': 'test-wallet',
+	'path': path.join(__dirname, 'test-wallet'),
 	'password': '123', 
 	'network': 'mainnet',
 	'daemonAddress': 'localhost:18081',
@@ -136,7 +136,7 @@ Returns promise object. Throws in case of arguments error.
 Checks if wallet exists:
 ```js
 const monero = require('monero-nodejs-libwallet');
-if (monero.walletExists('test-wallet')) {
+if (monero.walletExists(path.join(__dirname, 'test-wallet'))) {
     console.log('Wallet already exists');
 } else {
     console.log('Wallet does not exist');
