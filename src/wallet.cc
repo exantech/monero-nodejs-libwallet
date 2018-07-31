@@ -59,6 +59,104 @@ bool convertNettype(Monero::NetworkType type, std::string& netstring) {
     return true;
 }
 
+Local<String> convertAmount(Isolate* isolate, uint64_t amount) {
+    return String::NewFromUtf8(isolate, std::to_string(amount).c_str());
+}
+
+Local<Object> makeTransactionInfoObject(Isolate* isolate, const Monero::TransactionInfo* transaction) {
+
+    auto transfersNative = transaction->transfers();
+    auto transfers = Array::New(isolate, transfersNative.size());
+
+    for (size_t i = 0; i < transfersNative.size(); ++i) {
+        const auto& transfer = transfersNative[i];
+
+        auto trObj = Object::New(isolate);
+        trObj->Set(isolate->GetCurrentContext(),
+                   String::NewFromUtf8(isolate, "amount"),
+                   convertAmount(isolate, transfer.amount));
+
+        trObj->Set(isolate->GetCurrentContext(),
+                   String::NewFromUtf8(isolate, "address"),
+                   String::NewFromUtf8(isolate, transfer.address.c_str()));
+
+        transfers->Set(isolate->GetCurrentContext(), i, trObj);
+    }
+
+    auto subaddrsNative = transaction->subaddrIndex();
+    auto subaddrs = Array::New(isolate, subaddrsNative.size());
+    size_t subaddrIndex = 0;
+    for (const auto& subaddr: subaddrsNative) {
+        subaddrs->Set(isolate->GetCurrentContext(),
+                      subaddrIndex++,
+                      Uint32::NewFromUnsigned(isolate, subaddr));
+    }
+
+    auto result = Object::New(isolate);
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "subAddresses"),
+                subaddrs);
+
+    const char* direction = transaction->direction() == Monero::TransactionInfo::Direction_In ? "in" : "out";
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "transfers"),
+                transfers);
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "direction"),
+                String::NewFromUtf8(isolate, direction));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "pending"),
+                Boolean::New(isolate, transaction->isPending()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "failed"),
+                Boolean::New(isolate, transaction->isFailed()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "amount"),
+                convertAmount(isolate, transaction->amount()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "fee"),
+                convertAmount(isolate, transaction->fee()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "blockHeight"),
+                Integer::NewFromUnsigned(isolate, transaction->blockHeight()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "subAddrAccount"),
+                Uint32::NewFromUnsigned(isolate, transaction->subaddrAccount()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "label"),
+                String::NewFromUtf8(isolate, transaction->label().c_str()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "confirmations"),
+                Integer::NewFromUnsigned(isolate, transaction->confirmations()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "unlockTime"),
+                Integer::NewFromUnsigned(isolate, transaction->unlockTime()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "id"),
+                String::NewFromUtf8(isolate, transaction->hash().c_str()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "timestamp"),
+                Integer::New(isolate, transaction->timestamp()));
+
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "paymentId"),
+                String::NewFromUtf8(isolate, transaction->paymentId().c_str()));
+
+    return result;
+}
+
 }
 
 Persistent<Function> Wallet::constructor;
@@ -174,7 +272,8 @@ void Wallet::Init(Isolate* isolate) {
         {"signMessage", SignMessage},
         {"verifySignedMessage", VerifySignedMessage},
         {"signMultisigParticipant", SignMultisigParticipant},
-        {"verifyMessageWithPublicKey", VerifyMessageWithPublicKey}
+        {"verifyMessageWithPublicKey", VerifyMessageWithPublicKey},
+        {"history", TransactionHistory}
     };
 
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
@@ -511,6 +610,29 @@ void Wallet::StartRefresh(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void Wallet::PauseRefresh(const v8::FunctionCallbackInfo<v8::Value>& args) {
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
     obj->wallet_->pauseRefresh();
+}
+
+void Wallet::TransactionHistory(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    auto isolate = args.GetIsolate();
+
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    auto history = obj->wallet_->history();
+
+    history->refresh();
+
+    auto transactions = history->getAll();
+    auto result = Array::New(args.GetIsolate(), transactions.size());
+    for (size_t i = 0; i < transactions.size(); ++i) {
+        const auto& transaction = transactions[i];
+        auto txObj = makeTransactionInfoObject(isolate, transaction);
+
+        if (result->Set(isolate->GetCurrentContext(), i, txObj).IsNothing()) {
+            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Couldn't make transaction info list: unknown error")));
+            return;
+        }
+    }
+
+    args.GetReturnValue().Set(result);
 }
 
 void Wallet::CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
