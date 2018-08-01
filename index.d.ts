@@ -73,13 +73,13 @@ declare namespace monero {
   interface Wallet {
     address(): string;
     seed(): string;
-    on(event: 'newBlock', callback: (height: number) => void): PersonalWallet | MultisigWallet;
+    on(event: 'newBlock', callback: (height: number) => void): PersonalWallet & MultisigWallet;
     on(
       event: 'unconfirmedMoneyReceived' | 'moneyReceived' | 'moneySpent',
       callback: (tx: string, amount: string) => void,
-    ): PersonalWallet | MultisigWallet;
-    on(event: 'refreshed' | 'updated', callback: () => void): PersonalWallet | MultisigWallet;
-    off(event?: WalletEvent): PersonalWallet | MultisigWallet;
+    ): PersonalWallet & MultisigWallet;
+    on(event: 'refreshed' | 'updated', callback: () => void): PersonalWallet & MultisigWallet;
+    off(event?: WalletEvent): PersonalWallet & MultisigWallet;
     store(): Promise<void>;
     createTransaction(options: {
       address: string,
@@ -95,11 +95,11 @@ declare namespace monero {
     secretSpendKey(): string;
     publicSpendKey(): string;
     publicMultisigSignerKey(): string;
-    setPassword(password: string): PersonalWallet | MultisigWallet;
-    setRefreshFromBlockHeight(height: number): PersonalWallet | MultisigWallet;
+    setPassword(password: string): PersonalWallet & MultisigWallet;
+    setRefreshFromBlockHeight(height: number): PersonalWallet & MultisigWallet;
     getRefreshFromBlockHeight(): string;
     connected(): boolean;
-    setTrustedDaemon(value: boolean): PersonalWallet | MultisigWallet;
+    setTrustedDaemon(value: boolean): PersonalWallet & MultisigWallet;
     trustedDaemon(): boolean;
     balance(): string;
     unlockedBalance(): string;
@@ -134,14 +134,14 @@ declare namespace monero {
     network?: Network,
     daemonAddress: string,
     language?: Language,
-  }): Promise<PersonalWallet | MultisigWallet>;
+  }): Promise<PersonalWallet>;
   function openWallet(options: {
     path: string,
     password: string,
     network?: Network,
     daemonAddress: string,
     language?: Language,
-  }): Promise<PersonalWallet | MultisigWallet>;
+  }): Promise<PersonalWallet & MultisigWallet>;
   function recoveryWallet(options: {
     path: string,
     password: string,
