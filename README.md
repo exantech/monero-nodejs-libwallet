@@ -249,23 +249,23 @@ Returns promise. `then`-callback accepts `PendingTransaction` object, `catch`-ca
 ### history
 Returns array of transaction info objects:
 ```js
-wallet.history().forEach((tx) => {
-	console.log("id : " + tx.id);                           // transaction id (hash)
-	console.log("direction : " + tx.direction);             // 'in' for incoming transactions, 'out' for outcoming ones
-	console.log("pending : " + tx.pending);                 // 'true' if transaction has been included in a block
-	console.log("failed : " + tx.failed);                   // 'true' if transaction hasn't been sent due to errors
-	console.log("amount : " + tx.amount);                   // transaction amount (in atomic monero units as string)
-	console.log("fee : " + tx.fee);                         // transaction fee (in atomic monero units as string)
-	console.log("block height : " + tx.blockHeight);        // block height containing this transaction. 0 if pending
-	console.log("subaddresses: " + tx.subAddresses);        // account subaddresses affected by this transaction
-	console.log("subAddrAccount : " + tx.subAddrAccount);   // accounts affected by this transaction
-	console.log("label : " + tx.label);                     // account label
-	console.log("confirmations : " + tx.confirmations);     // number of transaction's confirmations
-	console.log("unlock time : " + tx.unlockTime);          // transaction unlock time
-	console.log("timestamp : " + tx.timestamp);             // transaction timestamp
-	console.log("payment id : " + tx.paymentId);            // payment id. '0000000000000000' if absent
+wallet.history().forEach((txInfo) => {
+	console.log("id : " + txInfo.id);                           // transaction id (hash)
+	console.log("direction : " + txInfo.direction);             // 'in' for incoming transactions, 'out' for outcoming ones
+	console.log("pending : " + txInfo.pending);                 // 'true' if transaction has been included in a block
+	console.log("failed : " + txInfo.failed);                   // 'true' if transaction hasn't been sent due to errors
+	console.log("amount : " + txInfo.amount);                   // transaction amount (in atomic monero units as string)
+	console.log("fee : " + txInfo.fee);                         // transaction fee (in atomic monero units as string)
+	console.log("block height : " + txInfo.blockHeight);        // block height containing this transaction. 0 if pending
+	console.log("subaddresses: " + txInfo.subAddresses);        // account subaddresses affected by this transaction
+	console.log("subAddrAccount : " + txInfo.subAddrAccount);   // accounts affected by this transaction
+	console.log("label : " + txInfo.label);                     // account label
+	console.log("confirmations : " + txInfo.confirmations);     // number of transaction's confirmations
+	console.log("unlock time : " + txInfo.unlockTime);          // transaction unlock time
+	console.log("timestamp : " + txInfo.timestamp);             // transaction timestamp
+	console.log("payment id : " + txInfo.paymentId);            // payment id. '0000000000000000' if absent
 
-	tx.transfers.forEach((transfer) => {                        // transaction's transfers if any (not available if wallet has been restored)
+	txInfo.transfers.forEach((transfer) => {                        // transaction's transfers if any (not available if wallet has been restored)
 		console.log("\ttransfer amount: " + transfer.amount);   // transfer amount
 		console.log("\ttransfer address: " + transfer.address); // transfer address
 	});
