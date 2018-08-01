@@ -64,7 +64,6 @@ Local<String> convertAmount(Isolate* isolate, uint64_t amount) {
 }
 
 Local<Object> makeTransactionInfoObject(Isolate* isolate, const Monero::TransactionInfo* transaction) {
-
     auto transfersNative = transaction->transfers();
     auto transfers = Array::New(isolate, transfersNative.size());
 
@@ -83,6 +82,11 @@ Local<Object> makeTransactionInfoObject(Isolate* isolate, const Monero::Transact
         transfers->Set(isolate->GetCurrentContext(), i, trObj);
     }
 
+    auto result = Object::New(isolate);
+    result->Set(isolate->GetCurrentContext(),
+                String::NewFromUtf8(isolate, "transfers"),
+                transfers);
+
     auto subaddrsNative = transaction->subaddrIndex();
     auto subaddrs = Array::New(isolate, subaddrsNative.size());
     size_t subaddrIndex = 0;
@@ -92,16 +96,11 @@ Local<Object> makeTransactionInfoObject(Isolate* isolate, const Monero::Transact
                       Uint32::NewFromUnsigned(isolate, subaddr));
     }
 
-    auto result = Object::New(isolate);
     result->Set(isolate->GetCurrentContext(),
                 String::NewFromUtf8(isolate, "subAddresses"),
                 subaddrs);
 
     const char* direction = transaction->direction() == Monero::TransactionInfo::Direction_In ? "in" : "out";
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "transfers"),
-                transfers);
-
     result->Set(isolate->GetCurrentContext(),
                 String::NewFromUtf8(isolate, "direction"),
                 String::NewFromUtf8(isolate, direction));
