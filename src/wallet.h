@@ -77,6 +77,8 @@ public:
     static void StartRefresh(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void PauseRefresh(const v8::FunctionCallbackInfo<v8::Value>& args);
 
+    static void TransactionHistory(const v8::FunctionCallbackInfo<v8::Value>& args);
+
     static void CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static void PublicMultisigSignerKey(const v8::FunctionCallbackInfo<v8::Value>& args);
