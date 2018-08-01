@@ -47,13 +47,39 @@ declare namespace monero {
     signersKeys(): string[];
   };
 
-  type Wallet = {
+  type Transfer = {
+    amount: string;
+    address: string;
+  };
+
+  type TransactionInfo = {
+    id: string;
+    direction: 'in' | 'out';
+    pending: boolean;
+    failed: boolean;
+    amount: string;
+    fee: string;
+    blockHeight: number;
+    subAddresses: string;
+    subAddrAccount: string;
+    label: string;
+    confirmations: number;
+    unlockTime: number;
+    timestamp: number;
+    paymentId: number;
+    transfers: Transfer[];
+  };
+
+  interface Wallet {
     address(): string;
     seed(): string;
-    on(event: 'newBlock', callback: (height: number) => void): Wallet;
-    on(event: 'unconfirmedMoneyReceived' | 'moneyReceived' | 'moneySpent', callback: (tx: string, amount: number) => void): Wallet;
-    on(event: 'refreshed' | 'updated', callback: () => void): Wallet;
-    off(event?: WalletEvent): Wallet;
+    on(event: 'newBlock', callback: (height: number) => void): PersonalWallet | MultisigWallet;
+    on(
+      event: 'unconfirmedMoneyReceived' | 'moneyReceived' | 'moneySpent',
+      callback: (tx: string, amount: string) => void,
+    ): PersonalWallet | MultisigWallet;
+    on(event: 'refreshed' | 'updated', callback: () => void): PersonalWallet | MultisigWallet;
+    off(event?: WalletEvent): PersonalWallet | MultisigWallet;
     store(): Promise<void>;
     createTransaction(options: {
       address: string,
@@ -61,6 +87,7 @@ declare namespace monero {
       paymentId?: string,
       mixin?: number,
     }): Promise<Transaction>;
+    history(): TransactionInfo[];
     path(): string;
     network(): Network;
     secretViewKey(): string;
@@ -68,11 +95,11 @@ declare namespace monero {
     secretSpendKey(): string;
     publicSpendKey(): string;
     publicMultisigSignerKey(): string;
-    setPassword(password: string): Wallet;
-    setRefreshFromBlockHeight(height: number): Wallet;
+    setPassword(password: string): PersonalWallet | MultisigWallet;
+    setRefreshFromBlockHeight(height: number): PersonalWallet | MultisigWallet;
     getRefreshFromBlockHeight(): string;
     connected(): boolean;
-    setTrustedDaemon(value: boolean): Wallet;
+    setTrustedDaemon(value: boolean): PersonalWallet | MultisigWallet;
     trustedDaemon(): boolean;
     balance(): string;
     unlockedBalance(): string;
@@ -82,9 +109,6 @@ declare namespace monero {
     pauseRefresh(): void;
     startRefresh(): void;
     multisigState(): MultisigState;
-    signMessage(message: string): string; // non-multisig only
-    verifySignedMessage(message: string, address: string, signature: string): boolean; // non-multisig only
-    signMultisigParticipant(message: string): string; // multisig only
     verifyMessageWithPublicKey(message: string, key: string, signature: string): boolean;
     getMultisigInfo(): string;
     makeMultisig(multisigInfos: string[], walletsNumber: number): string;
@@ -92,7 +116,16 @@ declare namespace monero {
     exportMultisigImages(): string;
     importMultisigImages(keys: string[]): void;
     restoreMultisigTransaction(sign: string): Promise<Transaction>;
-  };
+  }
+
+  interface MultisigWallet extends Wallet {
+    signMultisigParticipant(message: string): string;
+  }
+
+  interface PersonalWallet extends Wallet {
+    signMessage(message: string): string;
+    verifySignedMessage(message: string, address: string, signature: string): boolean;
+  }
 
   function setupLog(level: number, output?: string): void;
   function createWallet(options: {
@@ -101,14 +134,14 @@ declare namespace monero {
     network?: Network,
     daemonAddress: string,
     language?: Language,
-  }): Promise<Wallet>;
+  }): Promise<PersonalWallet | MultisigWallet>;
   function openWallet(options: {
     path: string,
     password: string,
     network?: Network,
     daemonAddress: string,
     language?: Language,
-  }): Promise<Wallet>;
+  }): Promise<PersonalWallet | MultisigWallet>;
   function recoveryWallet(options: {
     path: string,
     password: string,
@@ -116,7 +149,7 @@ declare namespace monero {
     daemonAddress: string,
     mnemonic: string,
     restoreHeight?: number,
-  }): Promise<Wallet>;
+  }): Promise<PersonalWallet>;
   function walletExists(path: string): boolean;
   function genPaymentId(): string;
   function paymentIdValid(paymentId: string): boolean;
