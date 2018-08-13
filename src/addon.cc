@@ -51,7 +51,7 @@ void SetupLog(const FunctionCallbackInfo<Value>& args) {
 
     auto filename = args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
 
-    mlog_configure(*String::Utf8Value(isolate, filename), false);
+    mlog_configure(*String::Utf8Value(filename), false);
     mlog_set_log(configureString);
 }
 

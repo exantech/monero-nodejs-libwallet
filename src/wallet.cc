@@ -14,7 +14,7 @@ using namespace v8;
 namespace {
 
 std::string toStdString(Isolate* isolate, const Local<Value>& val) {
-  String::Utf8Value utf8val(isolate, val);
+  String::Utf8Value utf8val(val);
   return std::string(*utf8val, utf8val.length());
 }
 
@@ -173,7 +173,7 @@ void Wallet::WalletExists(const FunctionCallbackInfo<Value>& args) {
         return;
     }
 
-    String::Utf8Value path(isolate, args[0]->ToString(isolate));
+    String::Utf8Value path(args[0]->ToString(isolate));
     auto manager = Monero::WalletManagerFactory::getWalletManager();
     bool exists = manager->walletExists(*path);
     args.GetReturnValue().Set(Boolean::New(isolate, exists));
