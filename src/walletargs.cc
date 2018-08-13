@@ -51,7 +51,7 @@ T getOptionalProperty(Isolate* isolate, Local<Object> obj, const char* name, con
 
 template<>
 std::string convertValue<std::string>(Isolate* isolate, Local<Value> value) {
-    return *String::Utf8Value(value);
+    return *String::Utf8Value(isolate, value);
 }
 
 template<>
