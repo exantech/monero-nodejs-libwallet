@@ -65,6 +65,16 @@ Local<Value> OpenWalletTask::afterWork(Isolate* isolate, std::string& error) {
     return Wallet::NewInstance(isolate, wallet_);
 }
 
+std::string CloseWalletTask::doWork() {
+    auto manager = Monero::WalletManagerFactory::getWalletManager();
+    manager->closeWallet(wallet_, store_);
+    return {};
+}
+
+Local<Value> CloseWalletTask::afterWork(Isolate* isolate, std::string& error) {
+    return Undefined(isolate);
+}
+
 std::string RecoveryWalletTask::doWork() {
     auto manager = Monero::WalletManagerFactory::getWalletManager();
 

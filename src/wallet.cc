@@ -325,19 +325,16 @@ void Wallet::Close(const v8::FunctionCallbackInfo<v8::Value>& args) {
     Isolate* isolate = args.GetIsolate();
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
 
-    auto manager = Monero::WalletManagerFactory::getWalletManager();
-
-    if (args.Length() == 0) {
-        manager->closeWallet(obj->wallet_, false);
+    if (args.Length() > 1 && !args[0]->IsBoolean()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Function accepts one optional boolean argument")));
         return;
     }
 
-    if (args.Length() != 1 || !args[0]->IsBoolean()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "One boolean argument is required")));
-        return;
-    }
+    bool store = args.Length() == 0 ? false : args[0]->ToBoolean(isolate)->Value();
 
-    manager->closeWallet(obj->wallet_, args[0]->ToBoolean(isolate)->Value());
+    CloseWalletTask* task = new CloseWalletTask(args.GetIsolate(), obj->wallet_, store);
+    auto promise = task->Enqueue(args.GetIsolate());
+    args.GetReturnValue().Set(promise);
 }
 
 void Wallet::Address(const v8::FunctionCallbackInfo<v8::Value>& args) {

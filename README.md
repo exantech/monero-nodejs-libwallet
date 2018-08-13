@@ -188,11 +188,11 @@ console.log('Wallet seed: ' + wallet.seed());
 ```
 
 ### close
-Closes wallet. Has one optional boolean argument to say to store wallet before closing (`false` by default)
+Closes wallet asynchronously. Has one optional boolean argument to say to store wallet before closing (`false` by default). 
 ```js
-wallet.close(true);  // saves wallet's cache before closing
-wallet.close(false); // does not save wallet's cache before closing
-wallet.close(); // the same as wallet.close(false);
+wallet.close(true)
+	.then(() => {console.log("wallet closed")})
+	.catch((e) => {console.log("unable to close wallet: " + e)});
 ```
 
 ### on
