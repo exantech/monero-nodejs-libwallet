@@ -187,6 +187,12 @@ Returns mnemonic seed for the wallet:
 console.log('Wallet seed: ' + wallet.seed());
 ```
 
+### close
+Closes wallet. Has one optional boolean argument to say to store wallet before closing (`false` by default)
+```js
+wallet.close();
+```
+
 ### on
 Subscibes on wallet emitted events:
 ```js

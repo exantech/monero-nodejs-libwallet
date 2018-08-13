@@ -233,6 +233,7 @@ void Wallet::Init(Isolate* isolate) {
     };
 
     static std::vector<FunctionRegisterInfo> walletFunctions = {
+        {"close", Close},
         {"address", Address},
         {"seed", Seed},
         {"on", On},
@@ -318,6 +319,25 @@ void Wallet::New(const FunctionCallbackInfo<Value>& args) {
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
     args.GetReturnValue().Set(instance);
   }
+}
+
+void Wallet::Close(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    Isolate* isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    auto manager = Monero::WalletManagerFactory::getWalletManager();
+
+    if (args.Length() == 0) {
+        manager->closeWallet(obj->wallet_, false);
+        return;
+    }
+
+    if (args.Length() != 1 || !args[0]->IsBoolean()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "One boolean argument is required")));
+        return;
+    }
+
+    manager->closeWallet(obj->wallet_, args[0]->ToBoolean(isolate)->Value());
 }
 
 void Wallet::Address(const v8::FunctionCallbackInfo<v8::Value>& args) {
