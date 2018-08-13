@@ -127,7 +127,7 @@ declare namespace monero {
     verifySignedMessage(message: string, address: string, signature: string): boolean;
   }
 
-  function setupLog(level: number, output?: string): void;
+  function setupLog(level: 0 | 1 | 2 | 3 | 4, output?: string): void;
   function createWallet(options: {
     path: string,
     password: string,
