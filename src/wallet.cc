@@ -233,6 +233,7 @@ void Wallet::Init(Isolate* isolate) {
     };
 
     static std::vector<FunctionRegisterInfo> walletFunctions = {
+        {"close", Close},
         {"address", Address},
         {"seed", Seed},
         {"on", On},
@@ -318,6 +319,22 @@ void Wallet::New(const FunctionCallbackInfo<Value>& args) {
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
     args.GetReturnValue().Set(instance);
   }
+}
+
+void Wallet::Close(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    Isolate* isolate = args.GetIsolate();
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+
+    if (args.Length() > 1 && !args[0]->IsBoolean()) {
+        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Function accepts one optional boolean argument")));
+        return;
+    }
+
+    bool store = args.Length() == 0 ? false : args[0]->ToBoolean(isolate)->Value();
+
+    CloseWalletTask* task = new CloseWalletTask(args.GetIsolate(), obj->wallet_, store);
+    auto promise = task->Enqueue(args.GetIsolate());
+    args.GetReturnValue().Set(promise);
 }
 
 void Wallet::Address(const v8::FunctionCallbackInfo<v8::Value>& args) {

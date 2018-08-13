@@ -187,6 +187,14 @@ Returns mnemonic seed for the wallet:
 console.log('Wallet seed: ' + wallet.seed());
 ```
 
+### close
+Closes wallet asynchronously. Has one optional boolean argument to say to store wallet before closing (`false` by default). 
+```js
+wallet.close(true)
+	.then(() => {console.log("wallet closed")})
+	.catch((e) => {console.log("unable to close wallet: " + e)});
+```
+
 ### on
 Subscibes on wallet emitted events:
 ```js
