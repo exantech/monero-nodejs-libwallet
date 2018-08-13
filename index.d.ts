@@ -116,6 +116,7 @@ declare namespace monero {
     exportMultisigImages(): string;
     importMultisigImages(keys: string[]): void;
     restoreMultisigTransaction(sign: string): Promise<Transaction>;
+    close(storeWallet?: boolean): Promise<void>;
   }
 
   interface MultisigWallet extends Wallet {
