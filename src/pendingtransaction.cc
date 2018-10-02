@@ -9,7 +9,7 @@ using namespace v8;
 
 namespace exawallet {
 
-Persistent<Function> PendingTransaction::constructor;
+Nan::Persistent<Function> PendingTransaction::constructor;
 
 PendingTransaction::~PendingTransaction() {
     if (transaction) {
@@ -17,10 +17,10 @@ PendingTransaction::~PendingTransaction() {
     }
 }
 
-void PendingTransaction::Init(Isolate* isolate) {
+NAN_MODULE_INIT(PendingTransaction::Init) {
     struct FunctionRegisterInfo {
         const char* name;
-        FunctionCallback func;
+        Nan::FunctionCallback func;
     };
 
     static std::vector<FunctionRegisterInfo> functions = {
@@ -35,39 +35,38 @@ void PendingTransaction::Init(Isolate* isolate) {
         {"signMultisigTransaction", SignMultisigTransaction},
     };
 
-    Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-    tpl->SetClassName(String::NewFromUtf8(isolate, "PendingTransaction"));
+    Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(PendingTransaction::New);
+    tpl->SetClassName(Nan::New("PendingTransaction").ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(functions.size());
 
     for (const auto& info: functions) {
-        NODE_SET_PROTOTYPE_METHOD(tpl, info.name, info.func);
+        Nan::SetPrototypeMethod(tpl, info.name, info.func);
     }
 
-    constructor.Reset(isolate, tpl->GetFunction());
+    constructor.Reset(tpl->GetFunction());
 }
 
-void PendingTransaction::New(const FunctionCallbackInfo<Value>& args) {
-  Isolate* isolate = args.GetIsolate();
+NAN_METHOD(PendingTransaction::New) {
 
-  if (args.IsConstructCall()) {
+  if (info.IsConstructCall()) {
     PendingTransaction* obj = new PendingTransaction(nullptr);
-    obj->Wrap(args.This());
-    args.GetReturnValue().Set(args.This());
+    obj->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
   } else {
     const int argc = 0;
-    Local<Value> argv[1] = { Null(isolate) };
-    Local<Function> cons = Local<Function>::New(isolate, constructor);
-    Local<Context> context = isolate->GetCurrentContext();
+    Local<Value> argv[1] = { Nan::Null() };
+    Local<Function> cons = Nan::New(constructor);
+    Local<Context> context = Nan::GetCurrentContext();
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
-    args.GetReturnValue().Set(instance);
+    info.GetReturnValue().Set(instance);
   }
 }
 
-Local<Object> PendingTransaction::NewInstance(Isolate* isolate, Monero::PendingTransaction* tx) {
+Local<Object> PendingTransaction::NewInstance(Monero::PendingTransaction* tx) {
     const unsigned argc = 0;
-    Local<Value> argv[1] = { Null(isolate) };
-    Local<Function> cons = Local<Function>::New(isolate, constructor);
-    Local<Context> context = isolate->GetCurrentContext();
+    Local<Value> argv[1] = { Nan::Null() };
+    Local<Function> cons = Nan::New(constructor);
+    Local<Context> context = Nan::GetCurrentContext();
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
 
     PendingTransaction* t = new PendingTransaction(tx);
@@ -75,100 +74,91 @@ Local<Object> PendingTransaction::NewInstance(Isolate* isolate, Monero::PendingT
     return instance;
 }
 
-void PendingTransaction::Commit(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::Commit) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
 
-    CommitTransactionTask* task = new CommitTransactionTask(isolate, obj->transaction);
-    auto promise = task->Enqueue(isolate);
-    args.GetReturnValue().Set(promise);
+    CommitTransactionTask* task = new CommitTransactionTask(obj->transaction);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void PendingTransaction::Amount(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::Amount) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
     auto amount = std::to_string(obj->transaction->amount());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, amount.c_str()));
+    info.GetReturnValue().Set(Nan::New(amount.c_str()).ToLocalChecked());
 }
 
-void PendingTransaction::Dust(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::Dust) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
     auto dust = std::to_string(obj->transaction->dust());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, dust.c_str()));
+    info.GetReturnValue().Set(Nan::New(dust.c_str()).ToLocalChecked());
 }
 
-void PendingTransaction::Fee(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::Fee) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
     auto fee = std::to_string(obj->transaction->fee());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, fee.c_str()));
+    info.GetReturnValue().Set(Nan::New(fee.c_str()).ToLocalChecked());
 }
 
-void PendingTransaction::TransactionsIds(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::TransactionsIds) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
 
     auto transactions = obj->transaction->txid();
-    auto result = Array::New(isolate, transactions.size());
+    auto result = Nan::New<Array>(transactions.size());
 
     for (size_t i = 0; i < transactions.size(); ++i) {
-        auto id = String::NewFromUtf8(isolate, transactions[i].c_str());
-        if (result->Set(isolate->GetCurrentContext(), i, id).IsNothing()) {
-            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Couldn't make transactions list: unknown error")));
+        auto id = Nan::New(transactions[i].c_str()).ToLocalChecked();
+        if (result->Set(Nan::GetCurrentContext(), i, id).IsNothing()) {
+            Nan::ThrowError("Couldn't make transactions list: unknown error");
             return;
         }
     }
 
-    args.GetReturnValue().Set(result);
+    info.GetReturnValue().Set(result);
 }
 
-void PendingTransaction::TransactionsCount(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
-    args.GetReturnValue().Set(Uint32::NewFromUnsigned(isolate, obj->transaction->txCount()));
+NAN_METHOD(PendingTransaction::TransactionsCount) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
+    info.GetReturnValue().Set(Nan::New((uint32_t)obj->transaction->txCount()));
 }
 
-void PendingTransaction::MultisigSignData(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::MultisigSignData) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
 
     auto signData = obj->transaction->multisigSignData();
     if (obj->transaction->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->transaction->errorString().c_str())));
+        Nan::ThrowError(obj->transaction->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signData.c_str()));
+    info.GetReturnValue().Set(Nan::New(signData.c_str()).ToLocalChecked());
 }
 
-void PendingTransaction::SignersKeys(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::SignersKeys) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
 
     auto keys = obj->transaction->signersKeys();
-    auto res = Array::New(isolate, keys.size());
+    auto res = Nan::New<Array>(keys.size());
     for (size_t i = 0; i < keys.size(); ++i) {
         auto key = keys[i];
-        if (res->Set(isolate->GetCurrentContext(), i, String::NewFromUtf8(isolate, key.c_str())).IsNothing()) {
-            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Error occured during insertion value into the array")));
+        if (res->Set(Nan::GetCurrentContext(), i, Nan::New(key.c_str()).ToLocalChecked()).IsNothing()) {
+            Nan::ThrowError("Error occured during insertion value into the array");
             return;
         }
     }
 
-    args.GetReturnValue().Set(res);
+    info.GetReturnValue().Set(res);
 }
 
-void PendingTransaction::SignMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(args.Holder());
+NAN_METHOD(PendingTransaction::SignMultisigTransaction) {
+    PendingTransaction* obj = ObjectWrap::Unwrap<PendingTransaction>(info.Holder());
 
     obj->transaction->signMultisigTx();
     if (obj->transaction->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->transaction->errorString().c_str())));
+        Nan::ThrowError(obj->transaction->errorString().c_str());
         return;
     }
 }

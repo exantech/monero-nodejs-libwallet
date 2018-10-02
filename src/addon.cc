@@ -1,22 +1,21 @@
+#include <nan.h>
 #include "wallet.h"
 #include "pendingtransaction.h"
 
 extern void mlog_configure(const std::string &filename_base, bool console, const std::size_t max_log_file_size = 104850000);
 extern void mlog_set_log(const char *log);
 
-using namespace v8;
 
 namespace exawallet {
 
-void SetupLog(const FunctionCallbackInfo<Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() == 0 || !args[0]->IsNumber()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Log level arument must be 0 - 4 integer")));
+NAN_METHOD(SetupLog) {
+    if (info.Length() == 0 || !info[0]->IsNumber()) {
+        Nan::ThrowError("Log level arument must be 0 - 4 integer");
         return;
     }
 
     const char* configureString = nullptr;
-    auto level = Integer::Cast(*args[0]);
+    auto level = v8::Integer::Cast(*info[0]);
     switch (level->Value()) {
     case 0:
         configureString = "0";
@@ -34,45 +33,47 @@ void SetupLog(const FunctionCallbackInfo<Value>& args) {
         configureString = "4";
         break;
     default:
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Log level arument must be 0 - 4 integer")));
+        Nan::ThrowError("Log level arument must be 0 - 4 integer");
         return;
     }
 
-    if (args.Length() == 1) {
+    if (info.Length() == 1) {
         mlog_configure("", true);
         mlog_set_log(configureString);
         return;
     }
 
-    if (!args[1]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Filename argument is expected")));
+    if (!info[1]->IsString()) {
+        Nan::ThrowError("Filename argument is expected");
         return;
     }
 
-    auto filename = args[1]->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-
-    mlog_configure(*String::Utf8Value(filename), false);
+    Nan::Utf8String filename(info[1]->ToString());
+    mlog_configure(*filename, false);
     mlog_set_log(configureString);
 }
 
-void Init(Local<Object> exports) {
-    Wallet::Init(exports->GetIsolate());
-    PendingTransaction::Init(exports->GetIsolate());
+
+
+NAN_MODULE_INIT(Init) {
+    Wallet::Init(target);
+    PendingTransaction::Init(target);
+
 
     //Monero libwallet generates too much logs in stdout by default
     mlog_set_log("0");
     mlog_configure("", false);
 
-    NODE_SET_METHOD(exports, "createWallet", Wallet::CreateWallet);
-    NODE_SET_METHOD(exports, "walletExists", Wallet::WalletExists);
-    NODE_SET_METHOD(exports, "openWallet", Wallet::OpenWallet);
-    NODE_SET_METHOD(exports, "recoveryWallet", Wallet::RecoveryWallet);
-    NODE_SET_METHOD(exports, "genPaymentId", Wallet::GenPaymentId);
-    NODE_SET_METHOD(exports, "paymentIdValid", Wallet::PaymentIdValid);
-    NODE_SET_METHOD(exports, "addressValid", Wallet::AddressValid);
-
-    NODE_SET_METHOD(exports, "setupLog", SetupLog);
+    Nan::SetMethod(target, "createWallet", Wallet::CreateWallet);
+    Nan::SetMethod(target, "walletExists", Wallet::WalletExists);
+    Nan::SetMethod(target, "openWallet", Wallet::OpenWallet);
+    Nan::SetMethod(target, "recoveryWallet", Wallet::RecoveryWallet);
+    Nan::SetMethod(target, "genPaymentId", Wallet::GenPaymentId);
+    Nan::SetMethod(target, "paymentIdValid", Wallet::PaymentIdValid);
+    Nan::SetMethod(target, "addressValid", Wallet::AddressValid);
+    Nan::SetMethod(target, "setupLog", SetupLog);
 }
+
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 

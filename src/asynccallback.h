@@ -8,12 +8,12 @@ namespace exawallet {
 
 // this call happens in event loop thread
 template <typename T>
-void makeCall(v8::Isolate* isolate, v8::Local<v8::Function> cb, const T& param);
+void makeCall(v8::Local<v8::Function> cb, const T& param);
 
 template <>
-void makeCall<uint64_t>(v8::Isolate* isolate, v8::Local<v8::Function> cb, const uint64_t& param) {
-    v8::Local<v8::Value> argv[] = { v8::Integer::New(isolate, param) };
-    v8::Local<v8::Function>::New(isolate, cb)->Call(isolate->GetCurrentContext()->Global(), 1, argv);
+void makeCall<uint64_t>(v8::Local<v8::Function> cb, const uint64_t& param) {
+    v8::Local<v8::Value> argv[] = { Nan::New((uint32_t)param) }; //MM FIXME: Integer==uint32_t always in JS????
+    cb->Call(Nan::GetCurrentContext()->Global(), 1, argv); // MM FIXME: was cloned cb???
 }
 
 void deleteUvHandle(uv_handle_t* handle) {
@@ -42,27 +42,27 @@ template<typename T>
 struct AsyncCallback: AsyncCallbackBase {
     T param;
 
-    void invoke(v8::Isolate* isolate) {
-        auto maybeFunc = wallet->FindCallback(isolate, funcName);
+    void invoke() {
+        auto maybeFunc = wallet->FindCallback(funcName);
         if (maybeFunc.IsEmpty()) {
             return;
         }
 
         v8::Local<v8::Function> cb = maybeFunc.ToLocalChecked();
-        makeCall(isolate, cb, param);
+        makeCall(cb, param);
     }
 };
 
 template <>
 struct AsyncCallback<void>: AsyncCallbackBase {
-    void invoke(v8::Isolate* isolate) {
-        auto maybeFunc = wallet->FindCallback(isolate, funcName);
+    void invoke() {
+        auto maybeFunc = wallet->FindCallback(funcName);
         if (maybeFunc.IsEmpty()) {
             return;
         }
 
-        v8::Local<v8::Value> argv[] = { v8::Null(isolate) };
-        maybeFunc.ToLocalChecked()->Call(isolate->GetCurrentContext()->Global(), 0, argv);
+        v8::Local<v8::Value> argv[] = { Nan::Null() };
+        maybeFunc.ToLocalChecked()->Call(Nan::GetCurrentContext()->Global(), 0, argv);
     }
 };
 
@@ -70,10 +70,9 @@ template <typename T>
 void mainThreadFunc(uv_async_t* handle) {
     AsyncCallback<T>* async = static_cast<AsyncCallback<T>*>(handle->data);
 
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
     {
-        v8::HandleScope scope(isolate);
-        async->invoke(isolate);
+        Nan::HandleScope scope;
+        async->invoke();
     }
 
     delete async;
@@ -97,9 +96,9 @@ struct TransactionAmount {
 };
 
 template <>
-void makeCall<TransactionAmount>(v8::Isolate* isolate, v8::Local<v8::Function> cb, const TransactionAmount& param) {
-    v8::Local<v8::Value> argv[] = { v8::String::NewFromUtf8(isolate, param.tx.c_str()), v8::String::NewFromUtf8(isolate, param.amount.c_str()) };
-    v8::Local<v8::Function>::New(isolate, cb)->Call(isolate->GetCurrentContext()->Global(), 2, argv);
+void makeCall<TransactionAmount>(v8::Local<v8::Function> cb, const TransactionAmount& param) {
+    v8::Local<v8::Value> argv[] = { Nan::New(param.tx.c_str()).ToLocalChecked(), Nan::New(param.amount.c_str()).ToLocalChecked() };
+    cb->Call(Nan::GetCurrentContext()->Global(), 2, argv);
 }
 
 } //namespace exawallet

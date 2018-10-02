@@ -7,27 +7,29 @@
 #include "walletargs.h"
 #include "wallettasks.h"
 
-namespace exawallet {
-
 using namespace v8;
+
+namespace exawallet {
 
 namespace {
 
-std::string toStdString(Isolate* isolate, const Local<Value>& val) {
-  String::Utf8Value utf8val(val);
-  return std::string(*utf8val, utf8val.length());
+
+
+std::string toStdString(const Local<Value>& val) {
+    Nan::Utf8String nanStr(val);
+    return std::string (*nanStr);
 }
 
-bool toVectorString(Isolate* isolate, Local<Value> args, std::vector<std::string>& append) {
+bool toVectorString(Local<Value> args, std::vector<std::string>& append) {
     Local<Array> items = Local<Array>::Cast(args);
     append.reserve(append.size() + items->Length());
     for (uint32_t i = 0; i < items->Length(); ++i) {
-        auto msigInfo = items->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
+        auto msigInfo = items->Get(Nan::GetCurrentContext(), i).ToLocalChecked();
         if (!msigInfo->IsString()) {
             return false;
         }
 
-        append.emplace_back(toStdString(isolate, msigInfo));
+        append.emplace_back(toStdString(msigInfo));
     }
 
     return true;
@@ -59,106 +61,106 @@ bool convertNettype(Monero::NetworkType type, std::string& netstring) {
     return true;
 }
 
-Local<String> convertAmount(Isolate* isolate, uint64_t amount) {
-    return String::NewFromUtf8(isolate, std::to_string(amount).c_str());
+Local<String> convertAmount(uint64_t amount) {
+    return Nan::New(std::to_string(amount).c_str()).ToLocalChecked();
 }
 
-Local<Object> makeTransactionInfoObject(Isolate* isolate, const Monero::TransactionInfo* transaction) {
+Local<Object> makeTransactionInfoObject(const Monero::TransactionInfo* transaction) {
     auto transfersNative = transaction->transfers();
-    auto transfers = Array::New(isolate, transfersNative.size());
+    auto transfers = Nan::New<Array>(transfersNative.size());
 
     for (size_t i = 0; i < transfersNative.size(); ++i) {
         const auto& transfer = transfersNative[i];
 
-        auto trObj = Object::New(isolate);
-        trObj->Set(isolate->GetCurrentContext(),
-                   String::NewFromUtf8(isolate, "amount"),
-                   convertAmount(isolate, transfer.amount));
+        auto trObj = Nan::New<Object>();
+        trObj->Set(Nan::GetCurrentContext(),
+                   Nan::New("amount").ToLocalChecked(),
+                   convertAmount(transfer.amount));
 
-        trObj->Set(isolate->GetCurrentContext(),
-                   String::NewFromUtf8(isolate, "address"),
-                   String::NewFromUtf8(isolate, transfer.address.c_str()));
+        trObj->Set(Nan::GetCurrentContext(),
+                   Nan::New("address").ToLocalChecked(),
+                   Nan::New(transfer.address.c_str()).ToLocalChecked());
 
-        transfers->Set(isolate->GetCurrentContext(), i, trObj);
+        transfers->Set(Nan::GetCurrentContext(), i, trObj);
     }
 
-    auto result = Object::New(isolate);
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "transfers"),
+    auto result = Nan::New<Object>();
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("transfers").ToLocalChecked(),
                 transfers);
 
     auto subaddrsNative = transaction->subaddrIndex();
-    auto subaddrs = Array::New(isolate, subaddrsNative.size());
+    auto subaddrs = Nan::New<Array>(subaddrsNative.size());
     size_t subaddrIndex = 0;
     for (const auto& subaddr: subaddrsNative) {
-        subaddrs->Set(isolate->GetCurrentContext(),
+        subaddrs->Set(Nan::GetCurrentContext(),
                       subaddrIndex++,
-                      Uint32::NewFromUnsigned(isolate, subaddr));
+                      Nan::New((uint32_t)subaddr));
     }
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "subAddresses"),
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("subAddresses").ToLocalChecked(),
                 subaddrs);
 
     const char* direction = transaction->direction() == Monero::TransactionInfo::Direction_In ? "in" : "out";
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "direction"),
-                String::NewFromUtf8(isolate, direction));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("direction").ToLocalChecked(),
+                Nan::New(direction).ToLocalChecked());
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "pending"),
-                Boolean::New(isolate, transaction->isPending()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("pending").ToLocalChecked(),
+                Nan::New(transaction->isPending()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "failed"),
-                Boolean::New(isolate, transaction->isFailed()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("failed").ToLocalChecked(),
+                Nan::New(transaction->isFailed()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "amount"),
-                convertAmount(isolate, transaction->amount()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("amount").ToLocalChecked(),
+                convertAmount(transaction->amount()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "fee"),
-                convertAmount(isolate, transaction->fee()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("fee").ToLocalChecked(),
+                convertAmount(transaction->fee()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "blockHeight"),
-                Integer::NewFromUnsigned(isolate, transaction->blockHeight()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("blockHeight").ToLocalChecked(),
+                Nan::New((uint32_t)transaction->blockHeight()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "subAddrAccount"),
-                Uint32::NewFromUnsigned(isolate, transaction->subaddrAccount()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("subAddrAccount").ToLocalChecked(),
+                Nan::New((uint32_t)transaction->subaddrAccount()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "label"),
-                String::NewFromUtf8(isolate, transaction->label().c_str()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("label").ToLocalChecked(),
+                Nan::New(transaction->label().c_str()).ToLocalChecked());
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "confirmations"),
-                Integer::NewFromUnsigned(isolate, transaction->confirmations()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("confirmations").ToLocalChecked(),
+                Nan::New((uint32_t)transaction->confirmations()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "unlockTime"),
-                Integer::NewFromUnsigned(isolate, transaction->unlockTime()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("unlockTime").ToLocalChecked(),
+                Nan::New((uint32_t)transaction->unlockTime()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "id"),
-                String::NewFromUtf8(isolate, transaction->hash().c_str()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("id").ToLocalChecked(),
+                Nan::New(transaction->hash().c_str()).ToLocalChecked());
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "timestamp"),
-                Integer::New(isolate, transaction->timestamp()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("timestamp").ToLocalChecked(),
+                Nan::New((uint32_t)transaction->timestamp()));
 
-    result->Set(isolate->GetCurrentContext(),
-                String::NewFromUtf8(isolate, "paymentId"),
-                String::NewFromUtf8(isolate, transaction->paymentId().c_str()));
+    result->Set(Nan::GetCurrentContext(),
+                Nan::New("paymentId").ToLocalChecked(),
+                Nan::New(transaction->paymentId().c_str()).ToLocalChecked());
 
     return result;
 }
 
 }
 
-Persistent<Function> Wallet::constructor;
+Nan::Persistent<v8::Function> Wallet::constructor;
 
 Wallet::~Wallet() {
     if (wallet_) {
@@ -166,70 +168,70 @@ Wallet::~Wallet() {
     }
 }
 
-void Wallet::WalletExists(const FunctionCallbackInfo<Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts path to wallet")));
+NAN_METHOD(Wallet::WalletExists) {
+
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Function accepts path to wallet");
         return;
     }
 
-    String::Utf8Value path(args[0]->ToString(isolate));
+    std::string path = toStdString(info[0]);
     auto manager = Monero::WalletManagerFactory::getWalletManager();
-    bool exists = manager->walletExists(*path);
-    args.GetReturnValue().Set(Boolean::New(isolate, exists));
+    bool exists = manager->walletExists(path);
+    info.GetReturnValue().Set(Nan::New(exists));
 }
 
-void Wallet::CreateWallet(const FunctionCallbackInfo<Value>& args) {
+NAN_METHOD(Wallet::CreateWallet) {
     CreateWalletArgs walletArgs;
-    std::string error = walletArgs.Init(args);
+    std::string error = walletArgs.Init(info);
     if (!error.empty()) {
-        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), error.c_str())));
+        Nan::ThrowError(error.c_str());
         return;
     }
 
-    CreateWalletTask* task = new CreateWalletTask(args.GetIsolate(), walletArgs);
-    auto promise = task->Enqueue(args.GetIsolate());
-    args.GetReturnValue().Set(promise);
+    CreateWalletTask* task = new CreateWalletTask(walletArgs);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::OpenWallet(const FunctionCallbackInfo<Value>& args) {
+NAN_METHOD(Wallet::OpenWallet) {
     OpenWalletArgs walletArgs;
-    std::string error = walletArgs.Init(args);
+    std::string error = walletArgs.Init(info);
     if (!error.empty()) {
-        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), error.c_str())));
+        Nan::ThrowError(error.c_str());
         return;
     }
 
-    OpenWalletTask* task = new OpenWalletTask(args.GetIsolate(), walletArgs);
-    auto promise = task->Enqueue(args.GetIsolate());
-    args.GetReturnValue().Set(promise);
+    OpenWalletTask* task = new OpenWalletTask(walletArgs);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::RecoveryWallet(const FunctionCallbackInfo<Value>& args) {
+NAN_METHOD(Wallet::RecoveryWallet) {
     RecoveryWalletArgs walletArgs;
-    std::string error = walletArgs.Init(args);
+    std::string error = walletArgs.Init(info);
     if (!error.empty()) {
-        args.GetIsolate()->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), error.c_str())));
+        Nan::ThrowError(error.c_str());
         return;
     }
 
-    RecoveryWalletTask* task = new RecoveryWalletTask(args.GetIsolate(), walletArgs);
-    auto promise = task->Enqueue(args.GetIsolate());
-    args.GetReturnValue().Set(promise);
+    RecoveryWalletTask* task = new RecoveryWalletTask(walletArgs);
+    auto promise = task->Enqueue();    
+    info.GetReturnValue().Set(promise);
 }
-MaybeLocal<Function> Wallet::FindCallback(Isolate* isolate, const std::string& name) {
+
+MaybeLocal<Function> Wallet::FindCallback(const std::string& name) {
     auto it = callbacks_.find(name);
     if (it == callbacks_.end()) {
         return MaybeLocal<Function>();
     }
-
-    return MaybeLocal<Function>(Local<Function>::New(isolate, it->second));
+    return Nan::New(it->second);
 }
 
-void Wallet::Init(Isolate* isolate) {
+NAN_MODULE_INIT(Wallet::Init) {
     struct FunctionRegisterInfo {
         const char* name;
-        FunctionCallback func;
+        Nan::FunctionCallback func;
     };
 
     static std::vector<FunctionRegisterInfo> walletFunctions = {
@@ -276,22 +278,21 @@ void Wallet::Init(Isolate* isolate) {
         {"history", TransactionHistory}
     };
 
-    Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-    tpl->SetClassName(String::NewFromUtf8(isolate, "Wallet"));
+    auto tpl = Nan::New<FunctionTemplate>(Wallet::New);
+    tpl->SetClassName(Nan::New("Wallet").ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(walletFunctions.size());
 
     for (const auto& info: walletFunctions) {
-        NODE_SET_PROTOTYPE_METHOD(tpl, info.name, info.func);
+        Nan::SetPrototypeMethod(tpl,info.name,info.func);
     }
-
-    constructor.Reset(isolate, tpl->GetFunction());
+    constructor.Reset(tpl->GetFunction());
 }
 
-v8::Local<v8::Object> Wallet::NewInstance(v8::Isolate* isolate, Monero::Wallet* wallet) {
+v8::Local<v8::Object> Wallet::NewInstance(Monero::Wallet* wallet) {
     const unsigned argc = 0;
-    Local<Value> argv[1] = { Null(isolate) };
-    Local<Function> cons = Local<Function>::New(isolate, constructor);
-    Local<Context> context = isolate->GetCurrentContext();
+    Local<Value> argv[1] = { Nan::Null() };
+    Local<Function> cons = Nan::New(constructor);
+    Local<Context> context = Nan::GetCurrentContext();
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
 
     Wallet* w = new Wallet(wallet);
@@ -304,193 +305,178 @@ v8::Local<v8::Object> Wallet::NewInstance(v8::Isolate* isolate, Monero::Wallet* 
     return instance;
 }
 
-void Wallet::New(const FunctionCallbackInfo<Value>& args) {
-  Isolate* isolate = args.GetIsolate();
+NAN_METHOD(Wallet::New) {
 
-  if (args.IsConstructCall()) {
+  if (info.IsConstructCall()) {
     Wallet* obj = new Wallet(nullptr);
-    obj->Wrap(args.This());
-    args.GetReturnValue().Set(args.This());
+    obj->Wrap(info.This());
+    info.GetReturnValue().Set(info.This());
   } else {
     const int argc = 0;
-    Local<Value> argv[1] = { Null(isolate) };
-    Local<Function> cons = Local<Function>::New(isolate, constructor);
-    Local<Context> context = isolate->GetCurrentContext();
+    Local<Value> argv[1] = { Nan::Null()};
+    Local<Function> cons = Nan::New(constructor);
+    Local<Context> context = Nan::GetCurrentContext();
+
     Local<Object> instance = cons->NewInstance(context, argc, argv).ToLocalChecked();
-    args.GetReturnValue().Set(instance);
+    info.GetReturnValue().Set(instance);
   }
 }
 
-void Wallet::Close(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    Isolate* isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Close)  {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    if (args.Length() > 1 && !args[0]->IsBoolean()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Function accepts one optional boolean argument")));
+    if (info.Length() > 1 && !info[0]->IsBoolean()) {
+        Nan::ThrowError("Function accepts one optional boolean argument");
         return;
     }
 
-    bool store = args.Length() == 0 ? false : args[0]->ToBoolean(isolate)->Value();
+    bool store = info.Length() == 0 ? false : info[0]->ToBoolean()->Value();
 
-    CloseWalletTask* task = new CloseWalletTask(args.GetIsolate(), obj->wallet_, store);
-    auto promise = task->Enqueue(args.GetIsolate());
-    args.GetReturnValue().Set(promise);
+    CloseWalletTask* task = new CloseWalletTask(obj->wallet_, store);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::Address(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    Isolate* isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Address) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     auto buf = obj->wallet_->address();
-    auto addr = String::NewFromUtf8(isolate, buf.c_str());
+    auto addr = Nan::New(buf.c_str()).ToLocalChecked();
 
-    args.GetReturnValue().Set(addr);
+    info.GetReturnValue().Set(addr);
 }
 
-void Wallet::Seed(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    Isolate* isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Seed) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     auto buf = obj->wallet_->seed();
-    auto seed = String::NewFromUtf8(isolate, buf.c_str());
+    auto seed = Nan::New(buf.c_str()).ToLocalChecked(); 
 
-    args.GetReturnValue().Set(seed);
+    info.GetReturnValue().Set(seed);
 }
 
-void Wallet::On(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::On) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    if (args.Length() != 2) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "2 arguments are required")));
+    if (info.Length() != 2) {
+        Nan::ThrowError("2 arguments are required");
         return;
     }
 
-    if (!args[0]->IsString() || !args[1]->IsFunction()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string and function arguments")));
+    if (!info[0]->IsString() || !info[1]->IsFunction()) {
+
+        Nan::ThrowTypeError("Function accepts string and function arguments");
         return;
     }
 
-    obj->callbacks_[toStdString(isolate, args[0])] = CopyablePersistentFunction(isolate, Local<Function>::Cast(args[1]));
-    args.GetReturnValue().Set(args.Holder());
+    obj->callbacks_[toStdString(info[0])] = CopyablePersistentFunction(info.GetIsolate(), Local<Function>::Cast(info[1]));
+    info.GetReturnValue().Set(info.Holder());
 }
 
-void Wallet::Off(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Off) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     //delete all listeners
-    if (args.Length() == 0) {
+    if (info.Length() == 0) {
         obj->callbacks_.clear();
-        args.GetReturnValue().Set(args.Holder());
+        info.GetReturnValue().Set(info.Holder());
         return;
     }
 
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts no arguments or event name")));
+    if (info.Length() != 1 || !info[0]->IsString()) {
+
+        Nan::ThrowTypeError("Function accepts no arguments or event name");
         return;
     }
 
-    obj->callbacks_.erase(toStdString(isolate, args[0]));
-    args.GetReturnValue().Set(args.Holder());
+    obj->callbacks_.erase(toStdString(info[0]));
+    info.GetReturnValue().Set(info.Holder());
 }
 
-void Wallet::Store(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Store) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    StoreWalletTask* task = new StoreWalletTask(isolate, obj->wallet_);
-    auto promise = task->Enqueue(isolate);
-    args.GetReturnValue().Set(promise);
+    StoreWalletTask* task = new StoreWalletTask(obj->wallet_);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::Path(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Path) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->path().c_str()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->path().c_str()).ToLocalChecked());
 }
 
-void Wallet::NetType(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::NetType) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     std::string nettype;
     if (!convertNettype(obj->wallet_->nettype(), nettype)) {
         assert(0);
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, nettype.c_str()));
+    info.GetReturnValue().Set(Nan::New(nettype.c_str()).ToLocalChecked());
 }
 
-void Wallet::SecretViewKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::SecretViewKey) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->secretViewKey().c_str()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->secretViewKey().c_str()).ToLocalChecked());
 }
 
-void Wallet::PublicViewKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::PublicViewKey) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->publicViewKey().c_str()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->publicViewKey().c_str()).ToLocalChecked());
 }
 
-void Wallet::SecretSpendKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::SecretSpendKey) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->secretSpendKey().c_str()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->secretSpendKey().c_str()).ToLocalChecked());
 }
 
-void Wallet::PublicSpendKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::PublicSpendKey) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, obj->wallet_->publicSpendKey().c_str()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->publicSpendKey().c_str()).ToLocalChecked());
 }
 
-void Wallet::SetPassword(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "String argument is required")));
+NAN_METHOD(Wallet::SetPassword) {
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("String argument is required");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    if (!obj->wallet_->setPassword(toStdString(isolate, args[0]->ToString(isolate)))) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), obj->wallet_->errorString().c_str())));
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    if (!obj->wallet_->setPassword(toStdString(info[0]->ToString()))) {
+        Nan::ThrowError(obj->wallet_->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(args.Holder());
+    info.GetReturnValue().Set(info.Holder());
 }
 
-void Wallet::SetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-
-    if (args.Length() != 1 || !args[0]->IsInt32()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Integer argument is required")));
+NAN_METHOD(Wallet::SetRefreshFromBlockHeight) {
+    if (info.Length() != 1 || !info[0]->IsInt32()) {
+        Nan::ThrowTypeError("Integer argument is required");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    obj->wallet_->setRefreshFromBlockHeight(args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    obj->wallet_->setRefreshFromBlockHeight(info[0]->Uint32Value(Nan::GetCurrentContext()).ToChecked());
 
-    args.GetReturnValue().Set(args.Holder());
+    info.GetReturnValue().Set(info.Holder());
 }
 
-void Wallet::GetRefreshFromBlockHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::GetRefreshFromBlockHeight) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(Integer::NewFromUnsigned(isolate, obj->wallet_->getRefreshFromBlockHeight()));
+    info.GetReturnValue().Set(Nan::New((uint32_t)obj->wallet_->getRefreshFromBlockHeight()));
 }
 
-void Wallet::Connected(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Connected) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     std::string status;
     switch (obj->wallet_->connected()) {
@@ -508,180 +494,158 @@ void Wallet::Connected(const v8::FunctionCallbackInfo<v8::Value>& args) {
         break;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, status.c_str()));
+    info.GetReturnValue().Set(Nan::New(status.c_str()).ToLocalChecked());
 }
 
-void Wallet::SetTrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-
-    if (args.Length() != 1 || !args[0]->IsBoolean()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(args.GetIsolate(), "Integer argument is required")));
+NAN_METHOD(Wallet::SetTrustedDaemon) {
+    if (info.Length() != 1 || !info[0]->IsBoolean()) {
+        Nan::ThrowTypeError("Integer argument is required");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    obj->wallet_->setTrustedDaemon(args[0]->ToBoolean(isolate)->Value());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    obj->wallet_->setTrustedDaemon(info[0]->ToBoolean()->Value());
 
-    args.GetReturnValue().Set(args.Holder());
+    info.GetReturnValue().Set(info.Holder());
 }
 
-void Wallet::TrustedDaemon(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::TrustedDaemon) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(Boolean::New(isolate, obj->wallet_->trustedDaemon()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->trustedDaemon()));
 }
 
-void Wallet::Balance(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Balance) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     // it seems v8 doesn't have uint64
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, std::to_string(obj->wallet_->balanceAll()).c_str()));
+    info.GetReturnValue().Set(Nan::New(std::to_string(obj->wallet_->balanceAll()).c_str()).ToLocalChecked());
 }
 
-void Wallet::UnlockedBalance(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::UnlockedBalance) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, std::to_string(obj->wallet_->unlockedBalanceAll()).c_str()));
+    info.GetReturnValue().Set(Nan::New(std::to_string(obj->wallet_->unlockedBalanceAll()).c_str()).ToLocalChecked());
 }
 
-void Wallet::BlockChainHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-
-    args.GetReturnValue().Set(Uint32::NewFromUnsigned(isolate, obj->wallet_->blockChainHeight()));
+NAN_METHOD(Wallet::BlockChainHeight) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    info.GetReturnValue().Set(Nan::New((uint32_t)obj->wallet_->blockChainHeight()));
 }
 
-void Wallet::DaemonBlockChainHeight(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::DaemonBlockChainHeight) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(Uint32::NewFromUnsigned(isolate, obj->wallet_->daemonBlockChainHeight()));
+    info.GetReturnValue().Set(Nan::New((uint32_t)obj->wallet_->daemonBlockChainHeight()));
 }
 
-void Wallet::Synchronized(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::Synchronized) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
-    args.GetReturnValue().Set(Boolean::New(isolate, obj->wallet_->synchronized()));
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->synchronized()));
 }
 
-void Wallet::GenPaymentId(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, Monero::Wallet::genPaymentId().c_str()));
+NAN_METHOD(Wallet::GenPaymentId) {
+    info.GetReturnValue().Set(Nan::New(Monero::Wallet::genPaymentId().c_str()).ToLocalChecked());
 }
 
-void Wallet::PaymentIdValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "String argument is required")));
+NAN_METHOD(Wallet::PaymentIdValid) {
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("String argument is required");
         return;
     }
 
-    args.GetReturnValue().Set(Boolean::New(isolate, Monero::Wallet::paymentIdValid(toStdString(isolate, args[0]->ToString(isolate)))));
+    info.GetReturnValue().Set(Nan::New(Monero::Wallet::paymentIdValid(toStdString(info[0]))));
 }
 
-void Wallet::AddressValid(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 2 || !args[0]->IsString() || !args[1]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "2 string arguments are required")));
+NAN_METHOD(Wallet::AddressValid) {
+    if (info.Length() != 2 || !info[0]->IsString() || !info[1]->IsString()) {
+        Nan::ThrowTypeError("2 string arguments are required");
         return;
     }
 
     Monero::NetworkType nettype;
-    if (!getNettype(toStdString(isolate, args[1]->ToString(isolate)), nettype)) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "wrong network type argument")));
+    if (!getNettype(toStdString(info[1]), nettype)) {
+        Nan::ThrowError("wrong network type argument");
+        return;
+    }
+    bool valid = Monero::Wallet::addressValid(toStdString(info[0]), nettype);
+    info.GetReturnValue().Set(Nan::New(valid));
+}
+
+NAN_METHOD(Wallet::DefaultMixin) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+
+    info.GetReturnValue().Set(Nan::New(obj->wallet_->defaultMixin()));
+}
+
+NAN_METHOD(Wallet::SetDefaultMixin) {
+    if (info.Length() != 1 || !info[0]->IsInt32()) {
+        Nan::ThrowTypeError("Integer argument is required");
         return;
     }
 
-    bool valid = Monero::Wallet::addressValid(toStdString(isolate, args[0]->ToString()), nettype);
-    args.GetReturnValue().Set(Boolean::New(isolate, valid));
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    obj->wallet_->setDefaultMixin(Nan::To<v8::Int32>(info[0]).ToLocalChecked()->Value());
 }
 
-void Wallet::DefaultMixin(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-
-    args.GetReturnValue().Set(Integer::New(isolate, obj->wallet_->defaultMixin()));
-}
-
-void Wallet::SetDefaultMixin(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsInt32()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Integer argument is required")));
-        return;
-    }
-
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    obj->wallet_->setDefaultMixin(args[0]->ToInt32(isolate)->Value());
-}
-
-void Wallet::StartRefresh(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::StartRefresh) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     obj->wallet_->startRefresh();
 }
 
-void Wallet::PauseRefresh(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::PauseRefresh) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     obj->wallet_->pauseRefresh();
 }
 
-void Wallet::TransactionHistory(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::TransactionHistory) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     auto history = obj->wallet_->history();
-
     history->refresh();
 
     auto transactions = history->getAll();
-    auto result = Array::New(args.GetIsolate(), transactions.size());
+    auto result = Nan::New<Array>(transactions.size());
     for (size_t i = 0; i < transactions.size(); ++i) {
         const auto& transaction = transactions[i];
-        auto txObj = makeTransactionInfoObject(isolate, transaction);
+        auto txObj = makeTransactionInfoObject(transaction);
 
-        if (result->Set(isolate->GetCurrentContext(), i, txObj).IsNothing()) {
-            isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Couldn't make transaction info list: unknown error")));
+        if (result->Set(Nan::GetCurrentContext(), i, txObj).IsNothing()) {
+            Nan::ThrowError("Couldn't make transaction info list: unknown error");
             return;
         }
     }
 
-    args.GetReturnValue().Set(result);
+    info.GetReturnValue().Set(result);
 }
 
-void Wallet::CreateTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
+NAN_METHOD(Wallet::CreateTransaction) {
     CreateTransactionArgs txArgs;
-    std::string error = txArgs.Init(args);
+    std::string error = txArgs.Init(info);
     if (!error.empty()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(args.GetIsolate(), error.c_str())));
+        Nan::ThrowError(error.c_str());
         return;
     }
-
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    CreateTransactionTask* task = new CreateTransactionTask(isolate, txArgs, obj->wallet_);
-    auto promise = task->Enqueue(isolate);
-    args.GetReturnValue().Set(promise);
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    CreateTransactionTask* task = new CreateTransactionTask(txArgs, obj->wallet_);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::PublicMultisigSignerKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::PublicMultisigSignerKey) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     auto signerKey = obj->wallet_->publicMultisigSignerKey();
     if (signerKey.empty()) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "The wallet is not multisig")));
+        Nan::ThrowError("The wallet is not multisig");
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signerKey.c_str()));
+    info.GetReturnValue().Set(Nan::New(signerKey.c_str()).ToLocalChecked());
 }
 
-void Wallet::GetMultisigInfo(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::GetMultisigInfo) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     auto msigInfo = obj->wallet_->getMultisigInfo();
 
@@ -689,217 +653,206 @@ void Wallet::GetMultisigInfo(const v8::FunctionCallbackInfo<v8::Value>& args) {
     std::string errorString;
     obj->wallet_->statusWithErrorString(status, errorString);
     if (status != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        Nan::ThrowError(errorString.c_str());
         return;
     }
 
-    return args.GetReturnValue().Set(String::NewFromUtf8(isolate, msigInfo.c_str()));
+    return info.GetReturnValue().Set(Nan::New(msigInfo.c_str()).ToLocalChecked());
 }
 
-void Wallet::MakeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 2 || !args[0]->IsArray() || !args[1]->IsInt32()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings and integer arguments")));
+NAN_METHOD(Wallet::MakeMultisig) {
+    if (info.Length() != 2 || !info[0]->IsArray() || !info[1]->IsInt32()) {
+        Nan::ThrowTypeError("Function accepts array of strings and integer arguments");
         return;
     }
 
     std::vector<std::string> infos;
-    if (!toVectorString(isolate, args[0], infos)) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings and integer arguments")));
+    if (!toVectorString(info[0], infos)) {
+        Nan::ThrowTypeError("Function accepts array of strings and integer arguments");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    auto threshold = Local<Uint32>::Cast(args[1]);
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    auto threshold = Local<Uint32>::Cast(info[1]);
     auto extraInfo = obj->wallet_->makeMultisig(infos, threshold->Value());
 
     int status;
     std::string errorString;
     obj->wallet_->statusWithErrorString(status, errorString);
     if (status != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        Nan::ThrowError(errorString.c_str());
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, extraInfo.c_str()));
+    info.GetReturnValue().Set(Nan::New(extraInfo.c_str()).ToLocalChecked());
 }
 
-void Wallet::FinalizeMultisig(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsArray()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings argument")));
+NAN_METHOD(Wallet::FinalizeMultisig) {
+    if (info.Length() != 1 || !info[0]->IsArray()) {
+        Nan::ThrowTypeError("Function accepts array of strings argument");
         return;
     }
-
     std::vector<std::string> extraInfos;
-    if (!toVectorString(isolate, args[0], extraInfos)) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings arguments")));
+    if (!toVectorString(info[0], extraInfos)) {
+        Nan::ThrowTypeError("Function accepts array of strings argument");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     if (!obj->wallet_->finalizeMultisig(extraInfos)) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        Nan::ThrowError(obj->wallet_->errorString().c_str());
         return;
     }
 }
 
-void Wallet::ExportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::ExportMultisigImages) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     std::string images;
     if (!obj->wallet_->exportMultisigImages(images)) {
         auto errorString = obj->wallet_->errorString();
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        Nan::ThrowError(errorString.c_str());
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, images.c_str()));
+    info.GetReturnValue().Set(Nan::New(images.c_str()).ToLocalChecked());
 }
 
-void Wallet::ImportMultisigImages(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsArray()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings argument")));
+NAN_METHOD(Wallet::ImportMultisigImages) {
+
+    if (info.Length() != 1 || !info[0]->IsArray()) {
+        Nan::ThrowTypeError("Function accepts array of strings argument");
         return;
     }
 
     std::vector<std::string> images;
-    if (!toVectorString(isolate, args[0], images)) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts array of strings arguments")));
+    if (!toVectorString(info[0], images)) {
+        Nan::ThrowTypeError("Function accepts array of strings argument");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     uint32_t imported = obj->wallet_->importMultisigImages(images);
 
     int status;
     std::string errorString;
     obj->wallet_->statusWithErrorString(status, errorString);
     if (status != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errorString.c_str())));
+        Nan::ThrowError(errorString.c_str());
         return;
     }
 
-    args.GetReturnValue().Set(imported);
+    info.GetReturnValue().Set(imported);
 }
 
-void Wallet::RestoreMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+NAN_METHOD(Wallet::RestoreMultisigTransaction) {
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Function accepts string argument");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    RestoreMultisigTransactionTask* task = new RestoreMultisigTransactionTask(isolate, toStdString(isolate, args[0]), obj->wallet_);
-    auto promise = task->Enqueue(isolate);
-    args.GetReturnValue().Set(promise);
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    RestoreMultisigTransactionTask* task = new RestoreMultisigTransactionTask(toStdString(info[0]), obj->wallet_);
+    auto promise = task->Enqueue();
+    info.GetReturnValue().Set(promise);
 }
 
-void Wallet::MultisigState(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+NAN_METHOD(Wallet::MultisigState) {
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
 
     auto state = obj->wallet_->multisig();
-    Local<Object> res = Object::New(isolate);
-    res->Set(isolate->GetCurrentContext(),
-             String::NewFromUtf8(isolate, "isMultisig"),
-             Boolean::New(isolate, state.isMultisig));
-    res->Set(isolate->GetCurrentContext(),
-             String::NewFromUtf8(isolate, "isReady"),
-             Boolean::New(isolate, state.isReady));
-    res->Set(isolate->GetCurrentContext(),
-             String::NewFromUtf8(isolate, "threshold"),
-             Uint32::NewFromUnsigned(isolate, state.threshold));
-    res->Set(isolate->GetCurrentContext(),
-             String::NewFromUtf8(isolate, "total"),
-             Uint32::NewFromUnsigned(isolate, state.total));
+    Local<Object> res = Nan::New<Object>();
+    res->Set(Nan::GetCurrentContext(),
+             Nan::New("isMultisig").ToLocalChecked(),
+             Nan::New(state.isMultisig));
+    res->Set(Nan::GetCurrentContext(),
+             Nan::New("isReady").ToLocalChecked(),
+             Nan::New(state.isReady));
+    res->Set(Nan::GetCurrentContext(),
+             Nan::New("threshold").ToLocalChecked(),
+             Nan::New((uint32_t)state.threshold));
+    res->Set(Nan::GetCurrentContext(),
+             Nan::New("total").ToLocalChecked(),
+             Nan::New((uint32_t)state.total));
 
-    args.GetReturnValue().Set(res);
+    info.GetReturnValue().Set(res);
 }
 
-void Wallet::SignMessage(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
+NAN_METHOD(Wallet::SignMessage) {
 
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Function accepts string argument");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    auto signature = obj->wallet_->signMessage(toStdString(isolate, args[0]));
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    auto signature = obj->wallet_->signMessage(toStdString(info[0]));
     if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        Nan::ThrowTypeError(obj->wallet_->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signature.c_str()));
+    info.GetReturnValue().Set(Nan::New(signature.c_str()).ToLocalChecked());
 }
 
-void Wallet::VerifySignedMessage(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
+NAN_METHOD(Wallet::VerifySignedMessage) {
 
-    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsString() || !args[2]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts message, monero address and signature as string arguments")));
+    if (info.Length() != 3 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()) {
+        Nan::ThrowTypeError("Function accepts message, monero address and signature as string arguments");
         return;
     }
 
-    auto message = toStdString(isolate, args[0]);
-    auto address = toStdString(isolate, args[1]);
-    auto signature = toStdString(isolate, args[2]);
+    auto message = toStdString(info[0]);
+    auto address = toStdString(info[1]);
+    auto signature = toStdString(info[2]);
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     bool valid = obj->wallet_->verifySignedMessage(message, address, signature);
 
     if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        Nan::ThrowTypeError(obj->wallet_->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(valid);
+    info.GetReturnValue().Set(valid);
 }
 
-void Wallet::SignMultisigParticipant(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
-
-    if (args.Length() != 1 || !args[0]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts string argument")));
+NAN_METHOD(Wallet::SignMultisigParticipant) {
+    if (info.Length() != 1 || !info[0]->IsString()) {
+        Nan::ThrowTypeError("Function accepts string argument");
         return;
     }
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
-    auto signature = obj->wallet_->signMultisigParticipant(toStdString(isolate, args[0]));
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
+    auto signature = obj->wallet_->signMultisigParticipant(toStdString(info[0]));
     if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        Nan::ThrowTypeError(obj->wallet_->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, signature.c_str()));
+    info.GetReturnValue().Set(Nan::New(signature.c_str()).ToLocalChecked());
 }
 
-void Wallet::VerifyMessageWithPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    auto isolate = args.GetIsolate();
+NAN_METHOD(Wallet::VerifyMessageWithPublicKey) {
 
-    if (args.Length() != 3 || !args[0]->IsString() || !args[1]->IsString() || !args[2]->IsString()) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Function accepts message, monero public key and signature as string arguments")));
+    if (info.Length() != 3 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()) {
+        Nan::ThrowTypeError("Function accepts message, monero public key and signature as string arguments");
         return;
     }
 
-    auto message = toStdString(isolate, args[0]);
-    auto publicKey = toStdString(isolate, args[1]);
-    auto signature = toStdString(isolate, args[2]);
+    auto message = toStdString(info[0]);
+    auto publicKey = toStdString(info[1]);
+    auto signature = toStdString(info[2]);
 
-    Wallet* obj = ObjectWrap::Unwrap<Wallet>(args.Holder());
+    Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
     bool valid = obj->wallet_->verifyMessageWithPublicKey(message, publicKey, signature);
 
     if (obj->wallet_->status() != Monero::Wallet::Status_Ok) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, obj->wallet_->errorString().c_str())));
+        Nan::ThrowTypeError(obj->wallet_->errorString().c_str());
         return;
     }
 
-    args.GetReturnValue().Set(valid);
+    info.GetReturnValue().Set(valid);
 }
 
 } //namespace exawallet

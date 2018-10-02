@@ -1,10 +1,9 @@
 #pragma once
 
-#include <node.h>
-#include <node_object_wrap.h>
+#include <nan.h>
 
 namespace Monero {
-class PendingTransaction;
+struct PendingTransaction;
 }
 
 namespace exawallet {
@@ -14,23 +13,23 @@ public:
     explicit PendingTransaction(Monero::PendingTransaction* tx): transaction(tx) {}
     virtual ~PendingTransaction();
 
-    static void Init(v8::Isolate* isolate);
-    static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static v8::Local<v8::Object> NewInstance(v8::Isolate* isolate, Monero::PendingTransaction* tx);
+    static NAN_MODULE_INIT(Init);
+    static NAN_METHOD(New);
+    static v8::Local<v8::Object> NewInstance(Monero::PendingTransaction* tx);
 
-    static void Commit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Amount(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Dust(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Fee(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void TransactionsIds(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void TransactionsCount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static NAN_METHOD(Commit);
+    static NAN_METHOD(Amount);
+    static NAN_METHOD(Dust);
+    static NAN_METHOD(Fee);
+    static NAN_METHOD(TransactionsIds);
+    static NAN_METHOD(TransactionsCount);
 
-    static void MultisigSignData(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void SignersKeys(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void SignMultisigTransaction(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static NAN_METHOD(MultisigSignData);
+    static NAN_METHOD(SignersKeys);
+    static NAN_METHOD(SignMultisigTransaction);
 
 private:
-    static v8::Persistent<v8::Function> constructor;
+    static Nan::Persistent<v8::Function> constructor;
 
     Monero::PendingTransaction* transaction;
 };
