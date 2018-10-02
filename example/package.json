@@ -4,6 +4,10 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "monero-nodejs-libwallet": "file:.."
+    "monero-nodejs-libwallet": "file:..",
+    "underscore": "^1.9.1",
+    "del": "^3.0.0",
+    "glob": "^7.1.3",
+    "glob-promise": "^3.4.0"
   }
 }

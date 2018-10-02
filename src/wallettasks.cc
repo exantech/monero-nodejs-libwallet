@@ -32,8 +32,8 @@ std::string CreateWalletTask::doWork() {
     return {};
 }
 
-Local<Value> CreateWalletTask::afterWork(Isolate* isolate, std::string& error) {
-    return Wallet::NewInstance(isolate, wallet_);
+Local<Value> CreateWalletTask::afterWork(std::string& error) {
+    return Wallet::NewInstance(wallet_);
 }
 
 std::string OpenWalletTask::doWork() {
@@ -61,8 +61,8 @@ std::string OpenWalletTask::doWork() {
     return {};
 }
 
-Local<Value> OpenWalletTask::afterWork(Isolate* isolate, std::string& error) {
-    return Wallet::NewInstance(isolate, wallet_);
+Local<Value> OpenWalletTask::afterWork(std::string& error) {
+    return Wallet::NewInstance(wallet_);
 }
 
 std::string CloseWalletTask::doWork() {
@@ -71,8 +71,8 @@ std::string CloseWalletTask::doWork() {
     return {};
 }
 
-Local<Value> CloseWalletTask::afterWork(Isolate* isolate, std::string& error) {
-    return Undefined(isolate);
+Local<Value> CloseWalletTask::afterWork(std::string& error) {
+    return Nan::Undefined();
 }
 
 std::string RecoveryWalletTask::doWork() {
@@ -101,8 +101,8 @@ std::string RecoveryWalletTask::doWork() {
     return {};
 }
 
-Local<Value> RecoveryWalletTask::afterWork(Isolate* isolate, std::string& error) {
-    return Wallet::NewInstance(isolate, wallet_);
+Local<Value> RecoveryWalletTask::afterWork(std::string& error) {
+    return Wallet::NewInstance(wallet_);
 }
 
 std::string StoreWalletTask::doWork() {
@@ -112,9 +112,8 @@ std::string StoreWalletTask::doWork() {
 
     return {};
 }
-
-Local<Value> StoreWalletTask::afterWork(Isolate* isolate, std::string& error) {
-    return Undefined(isolate);
+Local<Value> StoreWalletTask::afterWork(std::string& error) {
+    return Nan::Undefined();
 }
 
 std::string CreateTransactionTask::doWork() {
@@ -126,8 +125,8 @@ std::string CreateTransactionTask::doWork() {
     return {};
 }
 
-Local<Value> CreateTransactionTask::afterWork(Isolate* isolate, std::string& error) {
-    return PendingTransaction::NewInstance(isolate, transaction_);
+Local<Value> CreateTransactionTask::afterWork(std::string& error) {
+    return PendingTransaction::NewInstance(transaction_);
 }
 
 std::string CommitTransactionTask::doWork() {
@@ -138,8 +137,8 @@ std::string CommitTransactionTask::doWork() {
     return {};
 }
 
-Local<Value> CommitTransactionTask::afterWork(Isolate* isolate, std::string& error) {
-    return Undefined(isolate);
+Local<Value> CommitTransactionTask::afterWork(std::string& error) {
+    return Nan::Undefined();
 }
 
 std::string RestoreMultisigTransactionTask::doWork() {
@@ -147,12 +146,12 @@ std::string RestoreMultisigTransactionTask::doWork() {
     if (!wallet_->errorString().empty()) {
         return wallet_->errorString();
     }
-
+    
     return {};
 }
 
-Local<Value> RestoreMultisigTransactionTask::afterWork(Isolate* isolate, std::string& error) {
-    return PendingTransaction::NewInstance(isolate, transaction_);
+Local<Value> RestoreMultisigTransactionTask::afterWork(std::string& error) {
+    return PendingTransaction::NewInstance(transaction_);
 }
 
 }

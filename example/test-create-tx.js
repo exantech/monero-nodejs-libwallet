@@ -1,10 +1,6 @@
 const monero = require('monero-nodejs-libwallet');
 
-const fs = require('fs');
-if(fs.existsSync('index.log')) 
-	fs.unlinkSync('index.log')
-	
-monero.setupLog(3, "index.log");
+monero.setupLog(1);
 
 var wallet;
 var sent = false;
@@ -15,7 +11,7 @@ var args = {
 	'password': '123', 
 	'network': 'stagenet',
 	'daemonAddress': 'monero-stage.exan.tech:38081',
-	'restoreHeight': 0,
+	'restoreHeight': 1608000,
 	'mnemonic' : 'nifty inflamed against focus gasp ethics spying gulp tiger cogs evicted cohesive woken nylon erosion tell saved fatal alkaline acquire lemon maps hull imitate saved'
 }
 
@@ -68,8 +64,8 @@ promise
 			if (!sent) {
 				sent = true;
 				wallet.createTransaction({
-					'address': '44zrUGhyRHYbHYrfiGAtLdJMHfe5DtoFTBeVPCE6MGKzZA2bJ4tCJFuhYk3Wjp3YxEWoQU8So5xUiiArgnkBHZgX8Fyhv6e',
-					'amount': '2000000000', //monero atomic units as string
+                    'address': '56twwcC7i9zGWcDR16A3DJKERPn7CTpPJcj48QuKYumBRun7gJveNfpjfcN5qjtWAYEqGqNaXR7PVT57uVqYsmvn5QM8aim', // stagenet
+					'amount': '1', //monero atomic units as string
 				}).then((tx) => {
 					console.log("transaction created: " + tx.transactionsIds());
 					
@@ -77,11 +73,12 @@ promise
 						console.log("transaction commited successfully");
 					}).catch((e) => {
 						console.log("error on commiting transaction: " + e);
-					});
+                    });
+                    return wallet;
 				}).catch((e) => {
 					sent = false;
 					console.log("couldn't create transaction: " + e);
-				});
+				})
 			}
 		});
 

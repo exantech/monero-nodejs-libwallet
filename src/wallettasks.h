@@ -7,10 +7,10 @@ namespace exawallet {
 
 class CreateWalletTask: public DeferredTask {
 public:
-    CreateWalletTask(v8::Isolate* isolate, const CreateWalletArgs& args): DeferredTask(isolate), args_(args) {}
+    CreateWalletTask(const CreateWalletArgs& args): args_(args) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     CreateWalletArgs args_;
@@ -19,10 +19,10 @@ private:
 
 class OpenWalletTask: public DeferredTask {
 public:
-    OpenWalletTask(v8::Isolate* isolate, const OpenWalletArgs& args): DeferredTask(isolate), args_(args) {}
+    OpenWalletTask(const OpenWalletArgs& args): args_(args) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     OpenWalletArgs args_;
@@ -31,10 +31,10 @@ private:
 
 class CloseWalletTask: public DeferredTask {
 public:
-    CloseWalletTask(v8::Isolate* isolate, Monero::Wallet* wallet, bool store): DeferredTask(isolate), wallet_(wallet), store_(store) {}
+    CloseWalletTask(Monero::Wallet* wallet, bool store): wallet_(wallet), store_(store) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     Monero::Wallet* wallet_ = nullptr;
@@ -43,10 +43,10 @@ private:
 
 class RecoveryWalletTask: public DeferredTask {
 public:
-    RecoveryWalletTask(v8::Isolate* isolate, const RecoveryWalletArgs& args): DeferredTask(isolate), args_(args) {}
+    RecoveryWalletTask(const RecoveryWalletArgs& args): args_(args) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     RecoveryWalletArgs args_;
@@ -56,20 +56,20 @@ private:
 
 class StoreWalletTask: public DeferredTask {
 public:
-    StoreWalletTask(v8::Isolate* isolate, Monero::Wallet* wallet): DeferredTask(isolate), wallet_(wallet) {}
+    StoreWalletTask(Monero::Wallet* wallet): wallet_(wallet) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 private:
     Monero::Wallet* wallet_;
 };
 
 class CreateTransactionTask: public DeferredTask {
 public:
-    CreateTransactionTask(v8::Isolate* isolate, const CreateTransactionArgs& args, Monero::Wallet* wallet): DeferredTask(isolate), args_(args), wallet_(wallet) {}
+    CreateTransactionTask(const CreateTransactionArgs& args, Monero::Wallet* wallet): args_(args), wallet_(wallet) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     CreateTransactionArgs args_;
@@ -79,10 +79,10 @@ private:
 
 class CommitTransactionTask: public DeferredTask {
 public:
-    CommitTransactionTask(v8::Isolate* isolate, Monero::PendingTransaction* transaction): DeferredTask(isolate), transaction_(transaction) {}
+    CommitTransactionTask(Monero::PendingTransaction* transaction): transaction_(transaction) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     Monero::PendingTransaction* transaction_;
@@ -90,10 +90,11 @@ private:
 
 class RestoreMultisigTransactionTask: public DeferredTask {
 public:
-    RestoreMultisigTransactionTask(v8::Isolate* isolate, const std::string& transactionData, Monero::Wallet* wallet): DeferredTask(isolate), transactionData_(transactionData), wallet_(wallet) {}
+    RestoreMultisigTransactionTask(const std::string& transactionData, Monero::Wallet* wallet)
+        : transactionData_(transactionData), wallet_(wallet) {}
 
     virtual std::string doWork() override;
-    virtual v8::Local<v8::Value> afterWork(v8::Isolate* isolate, std::string& error) override;
+    virtual v8::Local<v8::Value> afterWork(std::string& error) override;
 
 private:
     std::string transactionData_;
