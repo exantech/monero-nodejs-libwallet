@@ -15,24 +15,51 @@ If `npm` couldn't find proper binaries for your platform please refer to [manual
 # Manual Build
 If you want to build the addon manually or there are no prebuilt binaries for your platform in `npm` repository please check the [official monero guide](https://github.com/monero-project/monero#compiling-monero-from-source) on how to satisfy all the dependencies. After that you may compile the addon following these steps:
 
-Checkout the repository:
+## Install prerequisites
+
+Start with node dependencies:
+
 ```sh
-$ git clone https://github.com/exantech/monero-nodejs-libwallet
+npm install
 ```
 
-Install prerequisites (example for ubuntu below)
+### OSX
+
 ```sh
-$ sudo apt-get install libpcsclite-dev
+brew install \
+  git wget curl pcsc-lite \
+  gcc cmake pkg-config boost openssl zeromq libpgm norm \
+  unbound libsodium libunwind-headers xz readline ldns expat
 ```
 
-Run build:
+### Ubuntu
+
 ```sh
-$ npm run build
+sudo apt-get -y install \
+  git wget curl python-software-properties libpcsclite-dev \
+  build-essential cmake pkg-config libboost-dev libpcsclite-dev \
+  libssl-dev libzmq3-dev libunwind8-dev liblzma-dev libsodium-dev libboost-all-dev \
+  libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libgtest-dev cl-chipz \
 ```
+
+## Checkout the repository
+
+```sh
+git clone https://github.com/exantech/monero-nodejs-libwallet
+```
+
+## Run build
+
+```sh
+make clean
+npm run build
+```
+
+## Use build
 
 Link your local build (using [`npm link`](https://docs.npmjs.com/cli/link) command):
 ```sh
-$ npm link
+npm link
 ```
 
 Then, in your project directory:
