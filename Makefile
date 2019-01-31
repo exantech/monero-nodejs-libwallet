@@ -1,4 +1,6 @@
-MONERO_BRANCH?="v0.13.0.4"
+MONERO_BRANCH?="release-v0.13"
+MONERO_REPO?=https://github.com/monero-project/monero
+
 MONERO_BUILD_TYPE?=Release
 
 BOOST_VERSION=1.66.0
@@ -39,7 +41,7 @@ deps: boost monero/build
 	cp boost/lib/*.a deps
 
 monero:
-	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} https://github.com/monero-project/monero
+	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} ${MONERO_REPO}
 	cp monero/src/wallet/api/wallet2_api.h include
 	
 monero/build: boost monero
