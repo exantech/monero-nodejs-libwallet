@@ -63,6 +63,7 @@
             "<@(additional_libraries)",
 			      "-lssl",
             "-lcrypto",
+            "-lsodium",
             "-lz",
             ""],
       "include_dirs": [

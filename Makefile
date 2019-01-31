@@ -1,11 +1,13 @@
-MONERO_BRANCH?="release-v0.12-multisig-wallet-assembled"
+MONERO_BRANCH?="release-v0.13"
+MONERO_REPO?=https://github.com/monero-project/monero
+
 MONERO_BUILD_TYPE?=Release
 
 BOOST_VERSION=1.66.0
 BOOST_DIRNAME=boost_1_66_0
 
 PWD=${shell pwd}
-BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
+BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread,locale
 THREADS?=1
 
 .PHONY: all
@@ -39,7 +41,7 @@ deps: boost monero/build
 	cp boost/lib/*.a deps
 
 monero:
-	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} https://github.com/exantech/monero
+	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} ${MONERO_REPO}
 	cp monero/src/wallet/api/wallet2_api.h include
 	
 monero/build: boost monero
@@ -52,6 +54,7 @@ monero/build: boost monero
 		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
 		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
 		-DEMBEDDED_WALLET=1 \
+		-DMANUAL_SUBMODULES=1 \
 		..
 
 	cd monero/build && make -j${THREADS} wallet_merged epee easylogging lmdb unbound VERBOSE=1
