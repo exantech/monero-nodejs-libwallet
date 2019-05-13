@@ -1,4 +1,4 @@
-MONERO_BRANCH?="release-v0.12-multisig-wallet-assembled"
+MONERO_BRANCH?="release-v0.13-exa-wallet"
 MONERO_BUILD_TYPE?=Release
 
 BOOST_VERSION=1.66.0
