@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/exantech/monero-nodejs-libwallet#readme",
   "engines": {
-    "node": "8 - 9"
+    "node": "^8 || ^10"
   },
   "dependencies": {
     "nan": "^2.10.0",

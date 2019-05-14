@@ -4,6 +4,10 @@ MONERO_BUILD_TYPE?=Release
 BOOST_VERSION=1.66.0
 BOOST_DIRNAME=boost_1_66_0
 
+SODIUM_VERSION=1.0.17
+SODIUM_DIRNAME=libsodium-${SODIUM_VERSION}
+SODIUM_LIBRARY=${SODIUM_DIRNAME}/src/libsodium/.libs/libsodium.a
+
 PWD=${shell pwd}
 BOOST_LIBS=chrono,date_time,filesystem,program_options,regex,serialization,system,thread
 THREADS?=1
@@ -17,6 +21,7 @@ clean:
 	rm -rf boost
 	rm -rf monero/build
 	rm -rf ${BOOST_DIRNAME}
+	rm -rf ${SODIUM_DIRNAME}
 	rm -rf deps
 	rm -rf build
 	rm -rf lib
@@ -33,10 +38,24 @@ boost: ${BOOST_DIRNAME}
 	cd ${BOOST_DIRNAME} && ./b2 -j4 cxxflags=-fPIC cflags=-fPIC -a link=static \
 		threading=multi threadapi=pthread --prefix=${PWD}/boost install
 
+libsodium-${SODIUM_VERSION}.tar.gz:
+	curl -L -o "libsodium-${SODIUM_VERSION}.tar.gz" https://github.com/jedisct1/libsodium/releases/download/${SODIUM_VERSION}/libsodium-${SODIUM_VERSION}.tar.gz
+
+${SODIUM_LIBRARY}: libsodium-${SODIUM_VERSION}.tar.gz
+	rm -rf ${SODIUM_DIRNAME}
+	tar zxf libsodium-${SODIUM_VERSION}.tar.gz 
+	cd ${SODIUM_DIRNAME} && \
+	./configure --disable-shared && make -j${THREADS}
+
+libsodium: ${SODIUM_LIBRARY}
+
 .PHONY: deps
-deps: boost monero/build
-	mkdir -p deps
+deps: ${SODIUM_LIBRARY} boost monero/build
+	mkdir -p deps/include
 	cp boost/lib/*.a deps
+	cp ${SODIUM_LIBRARY} deps
+	cp -r ${SODIUM_DIRNAME}/src/libsodium/include/sodium deps/include
+	cp -r ${SODIUM_DIRNAME}/src/libsodium/include/sodium.h deps/include
 
 monero:
 	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} https://github.com/exantech/monero
@@ -52,6 +71,8 @@ monero/build: boost monero
 		-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true \
 		-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=${PWD}/deps \
 		-DEMBEDDED_WALLET=1 \
+		-DSODIUM_INCLUDE_PATH=${PWD}/deps/include \
+		-DSODIUM_LIBRARY=${PWD}/deps/libsodium.a \
 		..
 
 	cd monero/build && make -j${THREADS} wallet_merged epee easylogging lmdb unbound VERBOSE=1
