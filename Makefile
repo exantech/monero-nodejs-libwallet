@@ -38,6 +38,9 @@ boost: ${BOOST_DIRNAME}
 	cd ${BOOST_DIRNAME} && ./b2 -j4 cxxflags=-fPIC cflags=-fPIC -a link=static \
 		threading=multi threadapi=pthread --prefix=${PWD}/boost install
 
+depsdir:
+	mkdir -p deps/include
+
 libsodium-${SODIUM_VERSION}.tar.gz:
 	curl -L -o "libsodium-${SODIUM_VERSION}.tar.gz" https://github.com/jedisct1/libsodium/releases/download/${SODIUM_VERSION}/libsodium-${SODIUM_VERSION}.tar.gz
 
@@ -47,23 +50,21 @@ ${SODIUM_LIBRARY}: libsodium-${SODIUM_VERSION}.tar.gz
 	cd ${SODIUM_DIRNAME} && \
 	./configure --disable-shared && make -j${THREADS}
 
-libsodium: ${SODIUM_LIBRARY}
-
-.PHONY: deps
-deps: ${SODIUM_LIBRARY} boost monero/build
-	mkdir -p deps/include
-	cp boost/lib/*.a deps
+libsodium: depsdir ${SODIUM_LIBRARY}
 	cp ${SODIUM_LIBRARY} deps
 	cp -r ${SODIUM_DIRNAME}/src/libsodium/include/sodium deps/include
 	cp -r ${SODIUM_DIRNAME}/src/libsodium/include/sodium.h deps/include
+
+.PHONY: deps
+deps: depsdir boost monero/build
+	cp boost/lib/*.a deps
 
 monero:
 	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} https://github.com/exantech/monero
 	cp monero/src/wallet/api/wallet2_api.h include
 	
-monero/build: boost monero
+monero/build: libsodium boost monero
 	mkdir -p monero/build
-	mkdir -p deps
 	cd monero/build && cmake -DBOOST_IGNORE_SYSTEM_PATHS=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
 		-DUSE_DEVICE_LEDGER=0 -DBUILD_TESTS=OFF -DSTATIC=ON \
 		-DCMAKE_BUILD_TYPE=${MONERO_BUILD_TYPE} \
