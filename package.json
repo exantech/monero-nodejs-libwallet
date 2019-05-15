@@ -31,7 +31,7 @@
     "node": "^8 || ^10 || ^12"
   },
   "dependencies": {
-    "nan": "^2.10.0",
+    "nan": "^2.13.2",
     "node-pre-gyp": "^0.9.1"
   },
   "devDependencies": {

@@ -56,16 +56,18 @@ libsodium: depsdir ${SODIUM_LIBRARY}
 	cp -r ${SODIUM_DIRNAME}/src/libsodium/include/sodium.h deps/include
 
 .PHONY: deps
-deps: depsdir boost monero/build
+deps: depsdir boost ${PWD}/deps/libwallet_merged.a
 	cp boost/lib/*.a deps
 
 monero:
 	git clone --depth 1 --recurse-submodules -b ${MONERO_BRANCH} https://github.com/exantech/monero
 	cp monero/src/wallet/api/wallet2_api.h include
 	
-monero/build: libsodium boost monero
+${PWD}/deps/libwallet_merged.a: libsodium boost monero
 	mkdir -p monero/build
-	cd monero/build && cmake -DBOOST_IGNORE_SYSTEM_PATHS=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
+	cd monero/build && cmake \
+		-DBOOST_IGNORE_SYSTEM_PATHS=ON \
+		-DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
 		-DUSE_DEVICE_LEDGER=0 -DBUILD_TESTS=OFF -DSTATIC=ON \
 		-DCMAKE_BUILD_TYPE=${MONERO_BUILD_TYPE} \
 		-DBOOST_ROOT=${PWD}/boost \

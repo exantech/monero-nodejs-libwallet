@@ -13,8 +13,6 @@ namespace exawallet {
 
 namespace {
 
-
-
 std::string toStdString(const Local<Value>& val) {
     Nan::Utf8String nanStr(val);
     return std::string (*nanStr);
@@ -169,7 +167,6 @@ Wallet::~Wallet() {
 }
 
 NAN_METHOD(Wallet::WalletExists) {
-
     if (info.Length() != 1 || !info[0]->IsString()) {
         Nan::ThrowTypeError("Function accepts path to wallet");
         return;
@@ -283,9 +280,9 @@ NAN_MODULE_INIT(Wallet::Init) {
     tpl->InstanceTemplate()->SetInternalFieldCount(walletFunctions.size());
 
     for (const auto& info: walletFunctions) {
-        Nan::SetPrototypeMethod(tpl,info.name,info.func);
+        Nan::SetPrototypeMethod(tpl, info.name, info.func);
     }
-    constructor.Reset(tpl->GetFunction());
+    constructor.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
 }
 
 v8::Local<v8::Object> Wallet::NewInstance(Monero::Wallet* wallet) {
@@ -306,7 +303,6 @@ v8::Local<v8::Object> Wallet::NewInstance(Monero::Wallet* wallet) {
 }
 
 NAN_METHOD(Wallet::New) {
-
   if (info.IsConstructCall()) {
     Wallet* obj = new Wallet(nullptr);
     obj->Wrap(info.This());
@@ -330,7 +326,10 @@ NAN_METHOD(Wallet::Close)  {
         return;
     }
 
-    bool store = info.Length() == 0 ? false : info[0]->ToBoolean()->Value();
+    bool store = false;
+    if (info.Length() != 0) {
+        store = Nan::To<bool>(info[0]).FromJust();
+    }
 
     CloseWalletTask* task = new CloseWalletTask(obj->wallet_, store);
     auto promise = task->Enqueue();
@@ -449,7 +448,7 @@ NAN_METHOD(Wallet::SetPassword) {
     }
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
-    if (!obj->wallet_->setPassword(toStdString(info[0]->ToString()))) {
+    if (!obj->wallet_->setPassword(toStdString(Nan::To<v8::String>(info[0]).ToLocalChecked()))) {
         Nan::ThrowError(obj->wallet_->errorString().c_str());
         return;
     }
@@ -499,12 +498,12 @@ NAN_METHOD(Wallet::Connected) {
 
 NAN_METHOD(Wallet::SetTrustedDaemon) {
     if (info.Length() != 1 || !info[0]->IsBoolean()) {
-        Nan::ThrowTypeError("Integer argument is required");
+        Nan::ThrowTypeError("Boolean argument is required");
         return;
     }
 
     Wallet* obj = ObjectWrap::Unwrap<Wallet>(info.Holder());
-    obj->wallet_->setTrustedDaemon(info[0]->ToBoolean()->Value());
+    obj->wallet_->setTrustedDaemon(Nan::To<bool>(info[0]).FromJust());
 
     info.GetReturnValue().Set(info.Holder());
 }
@@ -719,7 +718,6 @@ NAN_METHOD(Wallet::ExportMultisigImages) {
 }
 
 NAN_METHOD(Wallet::ImportMultisigImages) {
-
     if (info.Length() != 1 || !info[0]->IsArray()) {
         Nan::ThrowTypeError("Function accepts array of strings argument");
         return;
@@ -796,7 +794,6 @@ NAN_METHOD(Wallet::SignMessage) {
 }
 
 NAN_METHOD(Wallet::VerifySignedMessage) {
-
     if (info.Length() != 3 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()) {
         Nan::ThrowTypeError("Function accepts message, monero address and signature as string arguments");
         return;
@@ -834,7 +831,6 @@ NAN_METHOD(Wallet::SignMultisigParticipant) {
 }
 
 NAN_METHOD(Wallet::VerifyMessageWithPublicKey) {
-
     if (info.Length() != 3 || !info[0]->IsString() || !info[1]->IsString() || !info[2]->IsString()) {
         Nan::ThrowTypeError("Function accepts message, monero public key and signature as string arguments");
         return;

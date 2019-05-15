@@ -13,7 +13,7 @@ void makeCall(v8::Local<v8::Function> cb, const T& param);
 template <>
 void makeCall<uint64_t>(v8::Local<v8::Function> cb, const uint64_t& param) {
     v8::Local<v8::Value> argv[] = { Nan::New((uint32_t)param) }; //MM FIXME: Integer==uint32_t always in JS????
-    cb->Call(Nan::GetCurrentContext()->Global(), 1, argv); // MM FIXME: was cloned cb???
+    cb->Call(Nan::GetCurrentContext(), Nan::GetCurrentContext()->Global(), 1, argv); // MM FIXME: was cloned cb???
 }
 
 void deleteUvHandle(uv_handle_t* handle) {
@@ -62,7 +62,7 @@ struct AsyncCallback<void>: AsyncCallbackBase {
         }
 
         v8::Local<v8::Value> argv[] = { Nan::Null() };
-        maybeFunc.ToLocalChecked()->Call(Nan::GetCurrentContext()->Global(), 0, argv);
+        maybeFunc.ToLocalChecked()->Call(Nan::GetCurrentContext(), Nan::GetCurrentContext()->Global(), 0, argv);
     }
 };
 
@@ -98,7 +98,7 @@ struct TransactionAmount {
 template <>
 void makeCall<TransactionAmount>(v8::Local<v8::Function> cb, const TransactionAmount& param) {
     v8::Local<v8::Value> argv[] = { Nan::New(param.tx.c_str()).ToLocalChecked(), Nan::New(param.amount.c_str()).ToLocalChecked() };
-    cb->Call(Nan::GetCurrentContext()->Global(), 2, argv);
+    cb->Call(Nan::GetCurrentContext(), Nan::GetCurrentContext()->Global(), 2, argv);
 }
 
 } //namespace exawallet

@@ -74,7 +74,7 @@ std::string CreateWalletArgs::Init(const Nan::FunctionCallbackInfo<Value>& args)
     if (args.Length() != 1 || !args[0]->IsObject()) {
         return "Argument must be an object";
     }
-    auto obj = args[0]->ToObject();
+    auto obj = Nan::To<v8::Object>(args[0]).ToLocalChecked();
     if (!getRequiredProperty<std::string>(obj, "path", path)) {
         return std::string("Required property not found: path");
     }
@@ -107,7 +107,7 @@ std::string OpenWalletArgs::Init(const Nan::FunctionCallbackInfo<Value>& args) {
         return "Argument must be an object";
     }
 
-    auto obj = args[0]->ToObject();
+    auto obj = Nan::To<v8::Object>(args[0]).ToLocalChecked();
     if (!getRequiredProperty<std::string>(obj, "path", path)) {
         return std::string("Required property not found: path");
     }
@@ -138,7 +138,7 @@ std::string RecoveryWalletArgs::Init(const Nan::FunctionCallbackInfo<Value>& arg
         return "Argument must be an object";
     }
 
-    auto obj = args[0]->ToObject();
+    auto obj = Nan::To<v8::Object>(args[0]).ToLocalChecked();
     if (!getRequiredProperty<std::string>(obj, "path", path)) {
         return std::string("Required property not found: path");
     }
@@ -175,8 +175,7 @@ std::string CreateTransactionArgs::Init(const Nan::FunctionCallbackInfo<Value>& 
         return "Argument must be an object";
     }
 
-    auto obj = args[0]->ToObject();
-
+    auto obj = Nan::To<v8::Object>(args[0]).ToLocalChecked();
     if (!getRequiredProperty<std::string>(obj, "address", address)) {
         return std::string("Required property not found: address");
     }
