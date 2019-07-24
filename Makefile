@@ -66,6 +66,7 @@ monero:
 ${PWD}/deps/libwallet_merged.a: libsodium boost monero
 	mkdir -p monero/build
 	cd monero/build && cmake \
+		-DARCH=default \
 		-DBOOST_IGNORE_SYSTEM_PATHS=ON \
 		-DBUILD_SHARED_LIBS=OFF -DBUILD_GUI_DEPS=ON \
 		-DUSE_DEVICE_LEDGER=0 -DBUILD_TESTS=OFF -DSTATIC=ON \
