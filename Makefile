@@ -1,4 +1,4 @@
-MONERO_BRANCH?="release-v0.14-exa-wallet-nodejs"
+MONERO_BRANCH?="release-v0.16-exa-wallet-nodejs"
 MONERO_BUILD_TYPE?=Release
 
 BOOST_VERSION=1.66.0
